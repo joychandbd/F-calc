@@ -1,0 +1,6 @@
+{
+  "name": "Carpenter Calculator",
+  "description": "Pure offline carpenter calculator with full arithmetic, brackets, memory keys (MC, MR, M+, M-, MS), fraction tools, feet-inches conversions, and calculation history.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
