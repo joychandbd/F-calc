@@ -178,17 +178,24 @@ object ExpressionEvaluator {
     }
 
     /**
-     * Formats a raw double value into a clean decimal string.
+     * Formats a raw double value into a clean decimal string without integer overflow.
      */
     fun formatDecimal(value: Double): String {
         if (value.isNaN()) return "Error"
         if (value.isInfinite()) return if (value > 0) "Infinity" else "-Infinity"
 
-        val rounded = (value * 1000000.0).roundToInt() / 1000000.0
-        if (rounded == rounded.toLong().toDouble()) {
-            return rounded.toLong().toString()
+        // Handle exact integer values
+        if (value == value.toLong().toDouble() && abs(value) <= Long.MAX_VALUE.toDouble()) {
+            return value.toLong().toString()
         }
-        return rounded.toString()
+
+        // Format decimal up to 3 decimal places
+        val df = java.text.DecimalFormat("#.###", java.text.DecimalFormatSymbols(java.util.Locale.US).apply {
+            decimalSeparator = '.'
+        })
+        df.maximumFractionDigits = 3
+        val formatted = df.format(value)
+        return if (formatted == "-0") "0" else formatted
     }
 
     /**
@@ -202,8 +209,8 @@ object ExpressionEvaluator {
         val isNegative = totalInches < 0
         val absInches = abs(totalInches)
 
-        val totalFeet = (absInches / 12.0).toInt()
-        val remainingInches = absInches - (totalFeet * 12)
+        val totalFeet = (absInches / 12.0).toLong()
+        val remainingInches = absInches - (totalFeet * 12.0)
         val wholeInches = remainingInches.toInt()
         val fractionalPart = remainingInches - wholeInches
 

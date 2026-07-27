@@ -1,129 +1,99 @@
 package com.example.ui.components
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.expandVertically
-import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.ui.theme.NumberButtonBg
-import com.example.ui.theme.OperatorButtonBg
-import com.example.ui.theme.TimberAmber
-import com.example.ui.theme.TimberGold
-import com.example.ui.theme.TimberWood
+import com.example.ui.theme.GoogleActionBg
+import com.example.ui.theme.GoogleActionText
+import com.example.ui.theme.GoogleEqualsBg
+import com.example.ui.theme.GoogleEqualsText
+import com.example.ui.theme.GoogleNumBg
+import com.example.ui.theme.GoogleNumText
 
 @Composable
 fun KeypadGrid(
     onDigitClick: (String) -> Unit,
     onOperatorClick: (String) -> Unit,
     onBracketClick: (String) -> Unit,
-    onFractionClick: (String) -> Unit,
     onBackspaceClick: () -> Unit,
     onClearClick: () -> Unit,
     onEqualsClick: () -> Unit,
-    showQuickFractions: Boolean,
+    shapeRadius: Dp = 50.dp,
     modifier: Modifier = Modifier
 ) {
-    val buttonHeight = 62.dp
+    val buttonHeight = 68.dp
 
-    val numberBg = NumberButtonBg
-    val numberText = MaterialTheme.colorScheme.onSurface
+    val numberBg = GoogleNumBg
+    val numberText = GoogleNumText
 
-    val opBg = OperatorButtonBg
-    val opText = TimberGold
+    val actionBg = GoogleActionBg
+    val actionText = GoogleActionText
 
-    val actionBg = OperatorButtonBg
-    val actionText = TimberWood
-
-    val equalBg = TimberAmber
-    val equalText = MaterialTheme.colorScheme.onPrimary
+    val equalBg = GoogleEqualsBg
+    val equalText = GoogleEqualsText
 
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 8.dp, vertical = 2.dp),
-        verticalArrangement = Arrangement.spacedBy(2.dp)
+            .padding(horizontal = 12.dp, vertical = 6.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        // Quick Fraction Tape Row
-        AnimatedVisibility(
-            visible = showQuickFractions,
-            enter = expandVertically(),
-            exit = shrinkVertically()
-        ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 2.dp),
-                horizontalArrangement = Arrangement.SpaceEvenly
-            ) {
-                val fractions = listOf("1/16", "1/8", "1/4", "1/2", "3/4")
-                fractions.forEach { frac ->
-                    CalcButton(
-                        text = frac,
-                        onClick = { onFractionClick(frac) },
-                        modifier = Modifier
-                            .weight(1f)
-                            .height(42.dp),
-                        backgroundColor = OperatorButtonBg,
-                        contentColor = TimberWood,
-                        fontSize = 13.sp,
-                        fontWeight = FontWeight.Bold,
-                        shapeRadius = 10.dp,
-                        testTag = "fraction_${frac.replace("/", "_")}_button"
-                    )
-                }
-            }
-        }
-
-        // Row 1: C, (, ), ÷
+        // Row 1: AC, ( ), %, ÷
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceEvenly
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             CalcButton(
-                text = "C",
+                text = "AC",
                 onClick = onClearClick,
                 modifier = Modifier.weight(1f).height(buttonHeight),
                 backgroundColor = actionBg,
-                contentColor = MaterialTheme.colorScheme.error,
-                fontSize = 20.sp,
+                contentColor = actionText,
+                fontSize = 22.sp,
                 fontWeight = FontWeight.Bold,
+                shapeRadius = shapeRadius,
                 testTag = "clear_button"
             )
             CalcButton(
-                text = "(",
-                onClick = { onBracketClick("(") },
+                text = "( )",
+                onClick = { onBracketClick("AUTO") },
                 modifier = Modifier.weight(1f).height(buttonHeight),
                 backgroundColor = actionBg,
                 contentColor = actionText,
                 fontSize = 20.sp,
-                testTag = "left_bracket_button"
+                fontWeight = FontWeight.Bold,
+                shapeRadius = shapeRadius,
+                testTag = "bracket_button"
             )
             CalcButton(
-                text = ")",
-                onClick = { onBracketClick(")") },
+                text = "%",
+                onClick = { onOperatorClick("%") },
                 modifier = Modifier.weight(1f).height(buttonHeight),
                 backgroundColor = actionBg,
                 contentColor = actionText,
-                fontSize = 20.sp,
-                testTag = "right_bracket_button"
+                fontSize = 24.sp,
+                fontWeight = FontWeight.Bold,
+                shapeRadius = shapeRadius,
+                testTag = "percent_button"
             )
             CalcButton(
                 text = "÷",
                 onClick = { onOperatorClick("÷") },
                 modifier = Modifier.weight(1f).height(buttonHeight),
-                backgroundColor = opBg,
-                contentColor = opText,
-                fontSize = 26.sp,
+                backgroundColor = actionBg,
+                contentColor = actionText,
+                fontSize = 32.sp,
+                fontWeight = FontWeight.Bold,
+                shapeRadius = shapeRadius,
                 testTag = "divide_button"
             )
         }
@@ -131,7 +101,7 @@ fun KeypadGrid(
         // Row 2: 7, 8, 9, ×
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceEvenly
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             CalcButton(
                 text = "7",
@@ -139,6 +109,9 @@ fun KeypadGrid(
                 modifier = Modifier.weight(1f).height(buttonHeight),
                 backgroundColor = numberBg,
                 contentColor = numberText,
+                fontSize = 30.sp,
+                fontWeight = FontWeight.SemiBold,
+                shapeRadius = shapeRadius,
                 testTag = "num_7_button"
             )
             CalcButton(
@@ -147,6 +120,9 @@ fun KeypadGrid(
                 modifier = Modifier.weight(1f).height(buttonHeight),
                 backgroundColor = numberBg,
                 contentColor = numberText,
+                fontSize = 30.sp,
+                fontWeight = FontWeight.SemiBold,
+                shapeRadius = shapeRadius,
                 testTag = "num_8_button"
             )
             CalcButton(
@@ -155,23 +131,28 @@ fun KeypadGrid(
                 modifier = Modifier.weight(1f).height(buttonHeight),
                 backgroundColor = numberBg,
                 contentColor = numberText,
+                fontSize = 30.sp,
+                fontWeight = FontWeight.SemiBold,
+                shapeRadius = shapeRadius,
                 testTag = "num_9_button"
             )
             CalcButton(
                 text = "×",
                 onClick = { onOperatorClick("×") },
                 modifier = Modifier.weight(1f).height(buttonHeight),
-                backgroundColor = opBg,
-                contentColor = opText,
-                fontSize = 26.sp,
+                backgroundColor = actionBg,
+                contentColor = actionText,
+                fontSize = 32.sp,
+                fontWeight = FontWeight.Bold,
+                shapeRadius = shapeRadius,
                 testTag = "multiply_button"
             )
         }
 
-        // Row 3: 4, 5, 6, -
+        // Row 3: 4, 5, 6, −
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceEvenly
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             CalcButton(
                 text = "4",
@@ -179,6 +160,9 @@ fun KeypadGrid(
                 modifier = Modifier.weight(1f).height(buttonHeight),
                 backgroundColor = numberBg,
                 contentColor = numberText,
+                fontSize = 30.sp,
+                fontWeight = FontWeight.SemiBold,
+                shapeRadius = shapeRadius,
                 testTag = "num_4_button"
             )
             CalcButton(
@@ -187,6 +171,9 @@ fun KeypadGrid(
                 modifier = Modifier.weight(1f).height(buttonHeight),
                 backgroundColor = numberBg,
                 contentColor = numberText,
+                fontSize = 30.sp,
+                fontWeight = FontWeight.SemiBold,
+                shapeRadius = shapeRadius,
                 testTag = "num_5_button"
             )
             CalcButton(
@@ -195,15 +182,20 @@ fun KeypadGrid(
                 modifier = Modifier.weight(1f).height(buttonHeight),
                 backgroundColor = numberBg,
                 contentColor = numberText,
+                fontSize = 30.sp,
+                fontWeight = FontWeight.SemiBold,
+                shapeRadius = shapeRadius,
                 testTag = "num_6_button"
             )
             CalcButton(
                 text = "−",
                 onClick = { onOperatorClick("-") },
                 modifier = Modifier.weight(1f).height(buttonHeight),
-                backgroundColor = opBg,
-                contentColor = opText,
-                fontSize = 26.sp,
+                backgroundColor = actionBg,
+                contentColor = actionText,
+                fontSize = 32.sp,
+                fontWeight = FontWeight.Bold,
+                shapeRadius = shapeRadius,
                 testTag = "minus_button"
             )
         }
@@ -211,7 +203,7 @@ fun KeypadGrid(
         // Row 4: 1, 2, 3, +
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceEvenly
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             CalcButton(
                 text = "1",
@@ -219,6 +211,9 @@ fun KeypadGrid(
                 modifier = Modifier.weight(1f).height(buttonHeight),
                 backgroundColor = numberBg,
                 contentColor = numberText,
+                fontSize = 30.sp,
+                fontWeight = FontWeight.SemiBold,
+                shapeRadius = shapeRadius,
                 testTag = "num_1_button"
             )
             CalcButton(
@@ -227,6 +222,9 @@ fun KeypadGrid(
                 modifier = Modifier.weight(1f).height(buttonHeight),
                 backgroundColor = numberBg,
                 contentColor = numberText,
+                fontSize = 30.sp,
+                fontWeight = FontWeight.SemiBold,
+                shapeRadius = shapeRadius,
                 testTag = "num_2_button"
             )
             CalcButton(
@@ -235,15 +233,20 @@ fun KeypadGrid(
                 modifier = Modifier.weight(1f).height(buttonHeight),
                 backgroundColor = numberBg,
                 contentColor = numberText,
+                fontSize = 30.sp,
+                fontWeight = FontWeight.SemiBold,
+                shapeRadius = shapeRadius,
                 testTag = "num_3_button"
             )
             CalcButton(
                 text = "+",
                 onClick = { onOperatorClick("+") },
                 modifier = Modifier.weight(1f).height(buttonHeight),
-                backgroundColor = opBg,
-                contentColor = opText,
-                fontSize = 26.sp,
+                backgroundColor = actionBg,
+                contentColor = actionText,
+                fontSize = 32.sp,
+                fontWeight = FontWeight.Bold,
+                shapeRadius = shapeRadius,
                 testTag = "plus_button"
             )
         }
@@ -251,7 +254,7 @@ fun KeypadGrid(
         // Row 5: 0, ., ⌫, =
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceEvenly
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             CalcButton(
                 text = "0",
@@ -259,6 +262,9 @@ fun KeypadGrid(
                 modifier = Modifier.weight(1f).height(buttonHeight),
                 backgroundColor = numberBg,
                 contentColor = numberText,
+                fontSize = 30.sp,
+                fontWeight = FontWeight.SemiBold,
+                shapeRadius = shapeRadius,
                 testTag = "num_0_button"
             )
             CalcButton(
@@ -267,16 +273,20 @@ fun KeypadGrid(
                 modifier = Modifier.weight(1f).height(buttonHeight),
                 backgroundColor = numberBg,
                 contentColor = numberText,
-                fontSize = 24.sp,
+                fontSize = 30.sp,
+                fontWeight = FontWeight.Bold,
+                shapeRadius = shapeRadius,
                 testTag = "decimal_button"
             )
             CalcButton(
                 text = "⌫",
                 onClick = onBackspaceClick,
                 modifier = Modifier.weight(1f).height(buttonHeight),
-                backgroundColor = actionBg,
-                contentColor = actionText,
-                fontSize = 20.sp,
+                backgroundColor = numberBg,
+                contentColor = numberText,
+                fontSize = 24.sp,
+                fontWeight = FontWeight.SemiBold,
+                shapeRadius = shapeRadius,
                 testTag = "backspace_button"
             )
             CalcButton(
@@ -285,8 +295,9 @@ fun KeypadGrid(
                 modifier = Modifier.weight(1f).height(buttonHeight),
                 backgroundColor = equalBg,
                 contentColor = equalText,
-                fontSize = 28.sp,
+                fontSize = 32.sp,
                 fontWeight = FontWeight.Bold,
+                shapeRadius = shapeRadius,
                 testTag = "equals_button"
             )
         }

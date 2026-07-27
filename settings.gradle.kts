@@ -22,6 +22,6 @@ dependencyResolutionManagement {
   }
 }
 
-rootProject.name = "Carpenter Calculator"
+rootProject.name = "Prodeep Calculator"
 
 include(":app")

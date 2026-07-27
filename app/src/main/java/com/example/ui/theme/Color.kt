@@ -2,21 +2,23 @@ package com.example.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-// Carpenter Theme Palette - Timber & Dark Slate
-val SlateDark = Color(0xFF14171C)
-val SlateSurface = Color(0xFF1E222A)
-val SlateCard = Color(0xFF282C36)
+// Light Theme: Google Calculator Style
+val LightBg = Color(0xFFFFF8F6)
+val LightSurface = Color(0xFFFFFFFF)
+val LightCard = Color(0xFFF7ECE6)
+val LightTextPrimary = Color(0xFF1F1B16)
+val LightTextSecondary = Color(0xFF52443C)
 
-val TimberAmber = Color(0xFFE07A5F)
-val TimberAmberContainer = Color(0xFF5E2B1E)
-val TimberGold = Color(0xFFF2CC8F)
-val TimberWood = Color(0xFFD4A373)
+// Google Calc Button Colors
+val GoogleActionBg = Color(0xFFFFDCC9)
+val GoogleActionText = Color(0xFF2E1500)
+val GoogleNumBg = Color(0xFFF4EFEA)
+val GoogleNumText = Color(0xFF1F1B16)
+val GoogleEqualsBg = Color(0xFF485420)
+val GoogleEqualsText = Color(0xFFFFFFFF)
 
-val NumberButtonBg = Color(0xFF2A2E39)
-val OperatorButtonBg = Color(0xFF383E4D)
-val MemoryButtonBg = Color(0xFF242B38)
+// Common Accents
+val AccentOrange = Color(0xFFD96B27)
+val AccentOlive = Color(0xFF485420)
+val ErrorRed = Color(0xFFBA1A1A)
 
-val TextPrimary = Color(0xFFF5F6F8)
-val TextSecondary = Color(0xFFA0A7B5)
-val TextAccent = Color(0xFFF2CC8F)
-val ErrorRed = Color(0xFFE63946)
