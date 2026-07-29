@@ -220,7 +220,7 @@ class CalculatorViewModel(application: Application) : AndroidViewModel(applicati
         val cursorEnd = tfv.selection.end.coerceIn(0, currentText.length)
 
         if (currentText.isEmpty()) {
-            if (operator == "-") {
+            if (operator == "-" || operator == "−") {
                 setExpressionWithCursor("-", 1)
             } else if (_liveResult.value.isNotEmpty() && _liveResult.value != "Error") {
                 val newText = _liveResult.value + " $operator "
@@ -229,9 +229,21 @@ class CalculatorViewModel(application: Application) : AndroidViewModel(applicati
             return
         }
 
+        val textBefore = currentText.substring(0, cursorStart)
+        val textAfter = currentText.substring(cursorEnd)
+
+        val opRegex = Regex("""(\s*[\+\-\−\×\÷\*/]\s*)$""")
+        val match = opRegex.find(textBefore)
         val opString = " $operator "
-        val newText = currentText.substring(0, cursorStart) + opString + currentText.substring(cursorEnd)
-        setExpressionWithCursor(newText, cursorStart + opString.length)
+
+        if (match != null) {
+            val replacedBefore = textBefore.substring(0, match.range.first) + opString
+            val newText = replacedBefore + textAfter
+            setExpressionWithCursor(newText, replacedBefore.length)
+        } else {
+            val newText = textBefore + opString + textAfter
+            setExpressionWithCursor(newText, (textBefore + opString).length)
+        }
     }
 
     fun onBracketInput(bracket: String = "AUTO") {
@@ -478,19 +490,22 @@ class CalculatorViewModel(application: Application) : AndroidViewModel(applicati
         val currentVal = currentFlow.value
 
         when (key) {
+            "ADD", "Add" -> addCurrentToTimberBatch()
             "AC", "CLEAR_ALL" -> clearTimberFields()
             "C", "CLEAR" -> currentFlow.value = ""
             "⌫", "X", "x", "DEL" -> if (currentVal.isNotEmpty()) currentFlow.value = currentVal.dropLast(1)
-            "." -> if (!currentVal.contains(".")) currentFlow.value = if (currentVal.isEmpty()) "0." else "$currentVal."
+            "." -> if (!currentVal.contains(".") && currentVal.length < 5) currentFlow.value = if (currentVal.isEmpty()) "0." else "$currentVal."
             "NEXT" -> advanceToNextField()
             else -> {
                 // Digit 0-9
-                if (currentVal == "0" && key != "0") {
-                    currentFlow.value = key
-                } else if (_activeTimberField.value == ActiveTimberField.QUANTITY && currentVal == "1" && key != "0") {
-                    currentFlow.value = key
-                } else {
-                    currentFlow.value = currentVal + key
+                if (currentVal.length < 5) {
+                    if (currentVal == "0" && key != "0") {
+                        currentFlow.value = key
+                    } else if (_activeTimberField.value == ActiveTimberField.QUANTITY && currentVal == "1" && key != "0") {
+                        currentFlow.value = key
+                    } else {
+                        currentFlow.value = currentVal + key
+                    }
                 }
             }
         }

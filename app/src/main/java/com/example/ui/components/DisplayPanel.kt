@@ -26,14 +26,14 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.text.InlineTextContent
-import androidx.compose.foundation.text.appendInlineContent
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.selection.SelectionContainer
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Menu
@@ -147,9 +147,8 @@ fun DisplayPanel(
                     Spacer(modifier = Modifier.height(8.dp))
                 }
 
-                // Expression Input Display with Blinking Overlay Cursor and Touch/Drag Water Drop Handle
+                // Expression Input Display with BasicTextField for text select, copy, paste, and blinking black cursor
                 val rawText = expressionValue.text
-                val formattedDisplayText = if (rawText.isEmpty()) "0" else rawText
 
                 val exprFontSize = when {
                     rawText.length > 30 -> 22.sp
@@ -169,106 +168,41 @@ fun DisplayPanel(
                         .verticalScroll(exprScrollState),
                     contentAlignment = Alignment.BottomEnd
                 ) {
-                    var textLayoutResult by remember { mutableStateOf<TextLayoutResult?>(null) }
-                    var isTouching by remember { mutableStateOf(false) }
-                    val cursorPos = expressionValue.selection.start.coerceIn(0, rawText.length)
-
-                    Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.BottomEnd) {
-                        Text(
-                            text = formattedDisplayText,
-                            color = if (rawText.isEmpty()) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface,
+                    BasicTextField(
+                        value = expressionValue,
+                        onValueChange = onExpressionValueChange,
+                        readOnly = true,
+                        textStyle = TextStyle(
+                            color = MaterialTheme.colorScheme.onSurface,
                             fontSize = exprFontSize,
                             lineHeight = exprLineHeight,
                             fontWeight = FontWeight.Normal,
-                            textAlign = TextAlign.End,
-                            onTextLayout = { layout ->
-                                textLayoutResult = layout
-                            },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .pointerInput(rawText) {
-                                    awaitEachGesture {
-                                        val down = awaitFirstDown(requireUnconsumed = false)
-                                        isTouching = true
-                                        textLayoutResult?.let { layout ->
-                                            try {
-                                                val newOffset = layout.getOffsetForPosition(down.position).coerceIn(0, rawText.length)
-                                                onExpressionValueChange(expressionValue.copy(selection = TextRange(newOffset)))
-                                            } catch (_: Exception) {}
-                                        }
-
-                                        while (true) {
-                                            val event = awaitPointerEvent()
-                                            val change = event.changes.firstOrNull() ?: break
-                                            if (change.pressed) {
-                                                textLayoutResult?.let { layout ->
-                                                    try {
-                                                        val newOffset = layout.getOffsetForPosition(change.position).coerceIn(0, rawText.length)
-                                                        onExpressionValueChange(expressionValue.copy(selection = TextRange(newOffset)))
-                                                    } catch (_: Exception) {}
-                                                }
-                                            } else {
-                                                break
-                                            }
-                                        }
-                                        isTouching = false
-                                    }
+                            textAlign = TextAlign.End
+                        ),
+                        cursorBrush = SolidColor(Color.Black),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .testTag("expression_text"),
+                        decorationBox = { innerTextField ->
+                            Box(
+                                modifier = Modifier.fillMaxWidth(),
+                                contentAlignment = Alignment.BottomEnd
+                            ) {
+                                if (rawText.isEmpty()) {
+                                    Text(
+                                        text = "0",
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        fontSize = exprFontSize,
+                                        lineHeight = exprLineHeight,
+                                        fontWeight = FontWeight.Normal,
+                                        textAlign = TextAlign.End,
+                                        modifier = Modifier.fillMaxWidth()
+                                    )
                                 }
-                                .testTag("expression_text")
-                        )
-
-                        // Overlay Blinking Cursor Line + Water Drop 💧 Handle
-                        textLayoutResult?.let { layout ->
-                            val cursorRect = try {
-                                layout.getCursorRect(cursorPos)
-                            } catch (_: Exception) { null }
-
-                            if (cursorRect != null) {
-                                val density = LocalDensity.current
-                                val cursorLeftDp = with(density) { cursorRect.left.toDp() }
-                                val cursorTopDp = with(density) { cursorRect.top.toDp() }
-                                val cursorHeightDp = with(density) { cursorRect.height.toDp().coerceIn(20.dp, 40.dp) }
-
-                                // Vertical Cursor Line
-                                Box(
-                                    modifier = Modifier
-                                        .offset(x = cursorLeftDp, y = cursorTopDp)
-                                        .width(2.5.dp)
-                                        .height(cursorHeightDp)
-                                        .alpha(if (isTouching) 1f else cursorAlpha)
-                                        .background(Color.Black, RoundedCornerShape(1.dp))
-                                )
-
-                                // Water drop 💧 handle
-                                if (isTouching) {
-                                    Canvas(
-                                        modifier = Modifier
-                                            .offset(
-                                                x = cursorLeftDp - 7.dp,
-                                                y = cursorTopDp + cursorHeightDp - 2.dp
-                                            )
-                                            .size(16.dp, 20.dp)
-                                    ) {
-                                        val dropPath = Path().apply {
-                                            moveTo(size.width / 2f, 0f)
-                                            cubicTo(
-                                                size.width * 0.95f, size.height * 0.45f,
-                                                size.width, size.height,
-                                                size.width / 2f, size.height
-                                            )
-                                            cubicTo(
-                                                0f, size.height,
-                                                0f, size.height * 0.45f,
-                                                size.width / 2f, 0f
-                                            )
-                                            close()
-                                        }
-                                        drawPath(dropPath, color = Color.Black)
-                                    }
-                                }
+                                innerTextField()
                             }
                         }
-                    }
+                    )
                 }
 
                 if (liveResult.isNotEmpty()) {

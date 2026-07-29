@@ -66,8 +66,8 @@ fun TopPillHeaderBar(
             verticalAlignment = Alignment.CenterVertically
         ) {
             val options = listOf(
-                Triple(BottomModeOption.CALCULATOR, "Calculator", Icons.Default.Calculate),
-                Triple(BottomModeOption.WOODEN, "Wooden", Icons.Default.Forest)
+                Triple(BottomModeOption.WOODEN, "প্রদীপ", Icons.Default.Forest),
+                Triple(BottomModeOption.CALCULATOR, "ক্যালকুলেটর", Icons.Default.Calculate)
             )
 
             options.forEach { (option, label, icon) ->
