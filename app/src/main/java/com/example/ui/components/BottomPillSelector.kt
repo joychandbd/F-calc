@@ -16,6 +16,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Calculate
+import androidx.compose.material.icons.filled.Forest
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -64,11 +66,11 @@ fun TopPillHeaderBar(
             verticalAlignment = Alignment.CenterVertically
         ) {
             val options = listOf(
-                BottomModeOption.CALCULATOR to "🗓️ Calculator",
-                BottomModeOption.WOODEN to "🪵 Wooden"
+                Triple(BottomModeOption.CALCULATOR, "Calculator", Icons.Default.Calculate),
+                Triple(BottomModeOption.WOODEN, "Wooden", Icons.Default.Forest)
             )
 
-            options.forEach { (option, label) ->
+            options.forEach { (option, label, icon) ->
                 val isSelected = selectedOption == option
 
                 val pillBg by animateColorAsState(
@@ -96,12 +98,24 @@ fun TopPillHeaderBar(
                         .testTag("top_pill_${option.name.lowercase()}"),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text(
-                        text = label,
-                        color = textColor,
-                        fontSize = 14.sp,
-                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium
-                    )
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center
+                    ) {
+                        Icon(
+                            imageVector = icon,
+                            contentDescription = null,
+                            tint = textColor,
+                            modifier = Modifier.size(18.dp)
+                        )
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text(
+                            text = label,
+                            color = textColor,
+                            fontSize = 14.sp,
+                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium
+                        )
+                    }
                 }
             }
         }

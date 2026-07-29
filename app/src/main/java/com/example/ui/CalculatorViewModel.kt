@@ -478,6 +478,7 @@ class CalculatorViewModel(application: Application) : AndroidViewModel(applicati
         val currentVal = currentFlow.value
 
         when (key) {
+            "AC", "CLEAR_ALL" -> clearTimberFields()
             "C", "CLEAR" -> currentFlow.value = ""
             "⌫", "X", "x", "DEL" -> if (currentVal.isNotEmpty()) currentFlow.value = currentVal.dropLast(1)
             "." -> if (!currentVal.contains(".")) currentFlow.value = if (currentVal.isEmpty()) "0." else "$currentVal."
@@ -493,6 +494,16 @@ class CalculatorViewModel(application: Application) : AndroidViewModel(applicati
                 }
             }
         }
+    }
+
+    private fun clearTimberFields() {
+        _timberLength.value = ""
+        _timberWidth.value = ""
+        _timberThickness.value = ""
+        _timberGirth.value = ""
+        _timberQuantity.value = "1"
+        _timberUnitPrice.value = ""
+        _activeTimberField.value = ActiveTimberField.LENGTH
     }
 
     private fun getActiveFieldFlow(): MutableStateFlow<String> {

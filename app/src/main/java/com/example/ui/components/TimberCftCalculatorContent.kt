@@ -115,84 +115,71 @@ fun TimberCftCalculatorContent(
             .fillMaxSize()
             .padding(bottom = 4.dp)
     ) {
-        // Top Header Summary Card (Single line: left = total CFT, right = total price + History button)
+        // Top Header Summary Card (Two lines: left = total CFT & total price, right = Volume & History buttons)
         Card(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 10.dp, vertical = 4.dp),
+                .padding(horizontal = 10.dp, vertical = 2.dp),
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
             shape = RoundedCornerShape(12.dp),
-            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+            elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
         ) {
-            Box(modifier = Modifier.fillMaxWidth()) {
-                Image(
-                    painter = painterResource(id = R.drawable.img_timber_bg_1785261365180),
-                    contentDescription = null,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(52.dp)
-                        .clip(RoundedCornerShape(12.dp)),
-                    contentScale = ContentScale.Crop,
-                    alpha = 0.20f
-                )
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 12.dp, vertical = 6.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                val displayCft = if (hasMemory) memoryValue else batchList.sumOf { it.cft }
+                val uPrice = unitPrice.toDoubleOrNull() ?: 0.0
+                val displayPrice = if (hasMemory) {
+                    if (uPrice > 0.0) memoryValue * uPrice else batchList.sumOf { it.totalPrice }
+                } else {
+                    batchList.sumOf { it.totalPrice }
+                }
 
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 12.dp, vertical = 6.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    val displayCft = if (hasMemory) memoryValue else batchList.sumOf { it.cft }
-                    val uPrice = unitPrice.toDoubleOrNull() ?: 0.0
-                    val displayPrice = if (hasMemory) {
-                        if (uPrice > 0.0) memoryValue * uPrice else batchList.sumOf { it.totalPrice }
-                    } else {
-                        batchList.sumOf { it.totalPrice }
-                    }
-
+                Column {
                     Text(
                         text = "মোট কাঠ: ${String.format("%.2f", displayCft)} cft",
                         fontSize = 15.sp,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onSurface
                     )
+                    Spacer(modifier = Modifier.height(2.dp))
+                    Text(
+                        text = "মোট দাম: ৳${String.format("%.2f", displayPrice)}",
+                        fontSize = 15.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                }
 
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(
-                            text = "মোট মূল্য: ৳${String.format("%.2f", displayPrice)}",
-                            fontSize = 15.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onSurface
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    IconButton(
+                        onClick = onToggleSound,
+                        modifier = Modifier
+                            .size(36.dp)
+                            .testTag("timber_sound_toggle_button")
+                    ) {
+                        Icon(
+                            imageVector = if (isSoundEnabled) Icons.Default.VolumeUp else Icons.Default.VolumeOff,
+                            contentDescription = if (isSoundEnabled) "Mute Sound" else "Enable Sound",
+                            tint = MaterialTheme.colorScheme.onSurface
                         )
+                    }
 
-                        Spacer(modifier = Modifier.width(2.dp))
-
-                        IconButton(
-                            onClick = onToggleSound,
-                            modifier = Modifier
-                                .size(36.dp)
-                                .testTag("timber_sound_toggle_button")
-                        ) {
-                            Icon(
-                                imageVector = if (isSoundEnabled) Icons.Default.VolumeUp else Icons.Default.VolumeOff,
-                                contentDescription = if (isSoundEnabled) "Mute Sound" else "Enable Sound",
-                                tint = MaterialTheme.colorScheme.onSurface
-                            )
-                        }
-
-                        IconButton(
-                            onClick = onOpenHistory,
-                            modifier = Modifier
-                                .size(36.dp)
-                                .testTag("timber_history_button")
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.History,
-                                contentDescription = "History",
-                                tint = MaterialTheme.colorScheme.onSurface
-                            )
-                        }
+                    IconButton(
+                        onClick = onOpenHistory,
+                        modifier = Modifier
+                            .size(36.dp)
+                            .testTag("timber_history_button")
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.History,
+                            contentDescription = "History",
+                            tint = MaterialTheme.colorScheme.onSurface
+                        )
                     }
                 }
             }
@@ -200,94 +187,7 @@ fun TimberCftCalculatorContent(
 
         Spacer(modifier = Modifier.height(4.dp))
 
-        // Input Fields Card
-        Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 10.dp),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-            shape = RoundedCornerShape(14.dp),
-            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-        ) {
-            Column(modifier = Modifier.padding(10.dp)) {
-                if (timberType == TimberType.SAWN_TIMBER) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(6.dp)
-                    ) {
-                        TimberFieldBox(
-                            label = "দৈর্ঘ্য (ফুট)",
-                            value = length,
-                            isActive = activeField == ActiveTimberField.LENGTH,
-                            onClick = { onSelectField(ActiveTimberField.LENGTH) },
-                            modifier = Modifier.weight(1f)
-                        )
-                        TimberFieldBox(
-                            label = "প্রস্থ (ইঞ্চি)",
-                            value = width,
-                            isActive = activeField == ActiveTimberField.WIDTH,
-                            onClick = { onSelectField(ActiveTimberField.WIDTH) },
-                            modifier = Modifier.weight(1f)
-                        )
-                        TimberFieldBox(
-                            label = "পুরুত্ব (ইঞ্চি)",
-                            value = thickness,
-                            isActive = activeField == ActiveTimberField.THICKNESS,
-                            onClick = { onSelectField(ActiveTimberField.THICKNESS) },
-                            modifier = Modifier.weight(1f)
-                        )
-                    }
-                } else {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(6.dp)
-                    ) {
-                        TimberFieldBox(
-                            label = "দৈর্ঘ্য (ফুট)",
-                            value = length,
-                            isActive = activeField == ActiveTimberField.LENGTH,
-                            onClick = { onSelectField(ActiveTimberField.LENGTH) },
-                            modifier = Modifier.weight(1f)
-                        )
-                        TimberFieldBox(
-                            label = "বেড় (ইঞ্চি)",
-                            value = girth,
-                            isActive = activeField == ActiveTimberField.GIRTH,
-                            onClick = { onSelectField(ActiveTimberField.GIRTH) },
-                            modifier = Modifier.weight(1f)
-                        )
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(6.dp))
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(6.dp)
-                ) {
-                    TimberFieldBox(
-                        label = "পরিমাণ (টি)",
-                        value = quantity,
-                        isActive = activeField == ActiveTimberField.QUANTITY,
-                        onClick = { onSelectField(ActiveTimberField.QUANTITY) },
-                        modifier = Modifier.weight(1f)
-                    )
-                    TimberFieldBox(
-                        label = "দর / CFT (৳)",
-                        value = unitPrice,
-                        isActive = activeField == ActiveTimberField.PRICE,
-                        onClick = { onSelectField(ActiveTimberField.PRICE) },
-                        modifier = Modifier.weight(1f)
-                    )
-                }
-
-                Spacer(modifier = Modifier.height(8.dp))
-            }
-        }
-
-        Spacer(modifier = Modifier.height(6.dp))
-
-        // Swipeable Instant Calculation Result Box (Size Timber <---> Round Log)
+        // Swipeable Instant Calculation values
         val lenVal = length.toDoubleOrNull() ?: 0.0
         val qtyVal = quantity.toIntOrNull() ?: 1
         val unitPVal = unitPrice.toDoubleOrNull() ?: 0.0
@@ -301,110 +201,161 @@ fun TimberCftCalculatorContent(
         val roundCftVal = if (lenVal > 0 && gVal > 0) (gVal * gVal * lenVal / 2304.0) * qtyVal else 0.0
         val roundPriceVal = roundCftVal * unitPVal
 
-        Column(
+        // Combined Wood Card enclosing Input Fields + Swipeable Result Display (Red Box in UI layout)
+        Card(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 6.dp)
+                .padding(horizontal = 10.dp, vertical = 6.dp),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+            shape = RoundedCornerShape(16.dp),
+            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
         ) {
-            HorizontalPager(
-                state = pagerState,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(MaterialTheme.colorScheme.surfaceVariant)
-            ) { page ->
-                val isSawnPage = page == 0
-                val pageTitle = if (isSawnPage) "📐 সাইজ কাঠ" else "🪵 গোল কাঠ"
-                val pageCft = if (isSawnPage) sawnCftVal else roundCftVal
-                val pagePrice = if (isSawnPage) sawnPriceVal else roundPriceVal
+            Box(modifier = Modifier.fillMaxWidth()) {
+                Image(
+                    painter = painterResource(id = R.drawable.img_timber_bg_1785261365180),
+                    contentDescription = null,
+                    modifier = Modifier
+                        .matchParentSize()
+                        .clip(RoundedCornerShape(16.dp)),
+                    contentScale = ContentScale.Crop,
+                    alpha = 0.18f
+                )
 
-                val formattedCftStr = com.example.util.ExpressionEvaluator.formatTimberValue(pageCft)
-                val formattedPriceStr = com.example.util.ExpressionEvaluator.formatTimberValue(pagePrice)
-
-                val bgImageRes = if (isSawnPage) {
-                    R.drawable.img_sawn_wood_bg_1785327184380
-                } else {
-                    R.drawable.img_round_wood_bg_1785327205076
-                }
-
-                Box(
-                    modifier = Modifier.fillMaxWidth(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Image(
-                        painter = painterResource(id = bgImageRes),
-                        contentDescription = null,
-                        contentScale = ContentScale.Crop,
-                        modifier = Modifier
-                            .matchParentSize()
-                            .alpha(0.20f)
-                    )
-
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 12.dp, vertical = 8.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text(
-                                text = pageTitle,
-                                fontSize = 14.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.primary
+                Column(modifier = Modifier.padding(10.dp)) {
+                    if (timberType == TimberType.SAWN_TIMBER) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            TimberFieldBox(
+                                label = "দৈর্ঘ্য (ফুট)",
+                                value = length,
+                                isActive = activeField == ActiveTimberField.LENGTH,
+                                onClick = { onSelectField(ActiveTimberField.LENGTH) },
+                                modifier = Modifier.weight(1f)
                             )
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text(
-                                text = "CFT: $formattedCftStr",
-                                fontSize = 16.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.onSurface,
-                                maxLines = 1
+                            TimberFieldBox(
+                                label = "প্রস্থ (ইঞ্চি)",
+                                value = width,
+                                isActive = activeField == ActiveTimberField.WIDTH,
+                                onClick = { onSelectField(ActiveTimberField.WIDTH) },
+                                modifier = Modifier.weight(1f)
+                            )
+                            TimberFieldBox(
+                                label = "পুরুত্ব (ইঞ্চি)",
+                                value = thickness,
+                                isActive = activeField == ActiveTimberField.THICKNESS,
+                                onClick = { onSelectField(ActiveTimberField.THICKNESS) },
+                                modifier = Modifier.weight(1f)
                             )
                         }
+                    } else {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            TimberFieldBox(
+                                label = "দৈর্ঘ্য (ফুট)",
+                                value = length,
+                                isActive = activeField == ActiveTimberField.LENGTH,
+                                onClick = { onSelectField(ActiveTimberField.LENGTH) },
+                                modifier = Modifier.weight(1f)
+                            )
+                            TimberFieldBox(
+                                label = "বেড় (ইঞ্চি)",
+                                value = girth,
+                                isActive = activeField == ActiveTimberField.GIRTH,
+                                onClick = { onSelectField(ActiveTimberField.GIRTH) },
+                                modifier = Modifier.weight(1f)
+                            )
+                        }
+                    }
 
-                        Row(verticalAlignment = Alignment.CenterVertically) {
+                    Spacer(modifier = Modifier.height(6.dp))
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        TimberFieldBox(
+                            label = "পরিমাণ (টি)",
+                            value = quantity,
+                            isActive = activeField == ActiveTimberField.QUANTITY,
+                            onClick = { onSelectField(ActiveTimberField.QUANTITY) },
+                            modifier = Modifier.weight(1f)
+                        )
+                        TimberFieldBox(
+                            label = "দর / CFT (৳)",
+                            value = unitPrice,
+                            isActive = activeField == ActiveTimberField.PRICE,
+                            onClick = { onSelectField(ActiveTimberField.PRICE) },
+                            modifier = Modifier.weight(1f)
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(10.dp))
+
+                    // Swipeable Result Display inside Card
+                    HorizontalPager(
+                        state = pagerState,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(Color.White.copy(alpha = 0.88f))
+                    ) { page ->
+                        val isSawnPage = page == 0
+                        val pageTitle = if (isSawnPage) "সাইজ কাঠ" else "গোল কাঠ"
+                        val pageCft = if (isSawnPage) sawnCftVal else roundCftVal
+                        val pagePrice = if (isSawnPage) sawnPriceVal else roundPriceVal
+
+                        val formattedCftStr = com.example.util.ExpressionEvaluator.formatTimberValue(pageCft)
+                        val formattedPriceStr = com.example.util.ExpressionEvaluator.formatTimberValue(pagePrice)
+
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 14.dp, vertical = 8.dp)
+                        ) {
+                            Text(
+                                text = "$pageTitle  CFT: $formattedCftStr",
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                            Spacer(modifier = Modifier.height(4.dp))
                             Text(
                                 text = "দাম: ৳$formattedPriceStr",
                                 fontSize = 15.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                maxLines = 1
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
-                            Spacer(modifier = Modifier.width(4.dp))
-                            Text(
-                                text = if (isSawnPage) "➔" else "⬅",
-                                fontSize = 12.sp,
-                                color = MaterialTheme.colorScheme.outline
+                        }
+                    }
+
+                    // Indicator dots
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 4.dp),
+                        horizontalArrangement = Arrangement.Center,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        repeat(2) { index ->
+                            val isSelected = pagerState.currentPage == index
+                            Box(
+                                modifier = Modifier
+                                    .padding(2.dp)
+                                    .size(if (isSelected) 8.dp else 6.dp)
+                                    .clip(RoundedCornerShape(4.dp))
+                                    .background(if (isSelected) Color.Black else Color.LightGray)
                             )
                         }
                     }
                 }
             }
-
-            // Indicator dots
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 2.dp),
-                horizontalArrangement = Arrangement.Center,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                repeat(2) { index ->
-                    val isSelected = pagerState.currentPage == index
-                    Box(
-                        modifier = Modifier
-                            .padding(2.dp)
-                            .size(if (isSelected) 8.dp else 6.dp)
-                            .clip(RoundedCornerShape(4.dp))
-                            .background(if (isSelected) Color.Black else Color.LightGray)
-                    )
-                }
-            }
         }
 
-        Spacer(modifier = Modifier.height(4.dp))
+        Spacer(modifier = Modifier.weight(1f))
 
         // Memory Key Bar (MC, MR, M+, M-, MS) on a NEW line
         MemoryBar(
@@ -505,6 +456,11 @@ fun CustomizedTimberKeypad(
             TimberKeyButton("0", { onKeyInput("0") }, Modifier.weight(1f).height(keyHeight), bg = numberBg, textCol = numberText)
             TimberKeyButton(".", { onKeyInput(".") }, Modifier.weight(1f).height(keyHeight), bg = actionBg, textCol = actionText)
             TimberKeyButton("⌫", { onKeyInput("⌫") }, Modifier.weight(1f).height(keyHeight), bg = actionBg, textCol = actionText)
+        }
+        // Row 5: AC (50% width) and Next (50% width)
+        Row(horizontalArrangement = Arrangement.spacedBy(4.dp), modifier = Modifier.fillMaxWidth()) {
+            TimberKeyButton("AC", { onKeyInput("AC") }, Modifier.weight(1f).height(keyHeight), bg = actionBg, textCol = actionText, testTag = "timber_ac_button")
+            TimberKeyButton("Next", { onKeyInput("NEXT") }, Modifier.weight(1f).height(keyHeight), bg = GoogleEqualsBg, textCol = GoogleEqualsText, testTag = "timber_next_button")
         }
     }
 }

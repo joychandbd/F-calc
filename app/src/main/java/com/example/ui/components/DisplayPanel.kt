@@ -149,12 +149,7 @@ fun DisplayPanel(
 
                 // Expression Input Display with Blinking Overlay Cursor and Touch/Drag Water Drop Handle
                 val rawText = expressionValue.text
-                val formattedDisplayText = if (rawText.isEmpty()) "0" else {
-                    rawText.replace(" × ", "\n× ")
-                        .replace(" ÷ ", "\n÷ ")
-                        .replace(" + ", "\n+ ")
-                        .replace(" − ", "\n− ")
-                }
+                val formattedDisplayText = if (rawText.isEmpty()) "0" else rawText
 
                 val exprFontSize = when {
                     rawText.length > 30 -> 22.sp
