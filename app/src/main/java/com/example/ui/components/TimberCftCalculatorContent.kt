@@ -35,6 +35,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalView
@@ -56,6 +57,9 @@ import com.example.ui.theme.GoogleEqualsText
 import com.example.ui.theme.GoogleNumBg
 import com.example.ui.theme.GoogleNumText
 
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.foundation.Image
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
@@ -87,6 +91,25 @@ fun TimberCftCalculatorContent(
     onOpenHistory: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val pagerState = rememberPagerState(
+        initialPage = if (timberType == TimberType.SAWN_TIMBER) 0 else 1,
+        pageCount = { 2 }
+    )
+
+    LaunchedEffect(pagerState.currentPage) {
+        val targetType = if (pagerState.currentPage == 0) TimberType.SAWN_TIMBER else TimberType.ROUND_LOG
+        if (timberType != targetType) {
+            onSelectType(targetType)
+        }
+    }
+
+    LaunchedEffect(timberType) {
+        val targetPage = if (timberType == TimberType.SAWN_TIMBER) 0 else 1
+        if (pagerState.currentPage != targetPage) {
+            pagerState.animateScrollToPage(targetPage)
+        }
+    }
+
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -259,29 +282,123 @@ fun TimberCftCalculatorContent(
                 }
 
                 Spacer(modifier = Modifier.height(8.dp))
+            }
+        }
 
-                // Instant Calculation Result Box (CFT & Price)
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clip(RoundedCornerShape(10.dp))
-                        .background(MaterialTheme.colorScheme.surfaceVariant)
-                        .padding(horizontal = 12.dp, vertical = 8.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
+        Spacer(modifier = Modifier.height(6.dp))
+
+        // Swipeable Instant Calculation Result Box (Size Timber <---> Round Log)
+        val lenVal = length.toDoubleOrNull() ?: 0.0
+        val qtyVal = quantity.toIntOrNull() ?: 1
+        val unitPVal = unitPrice.toDoubleOrNull() ?: 0.0
+
+        val wVal = width.toDoubleOrNull() ?: 0.0
+        val thVal = thickness.toDoubleOrNull() ?: 0.0
+        val sawnCftVal = if (lenVal > 0 && wVal > 0 && thVal > 0) (lenVal * wVal * thVal / 144.0) * qtyVal else 0.0
+        val sawnPriceVal = sawnCftVal * unitPVal
+
+        val gVal = girth.toDoubleOrNull() ?: 0.0
+        val roundCftVal = if (lenVal > 0 && gVal > 0) (gVal * gVal * lenVal / 2304.0) * qtyVal else 0.0
+        val roundPriceVal = roundCftVal * unitPVal
+
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 6.dp)
+        ) {
+            HorizontalPager(
+                state = pagerState,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(MaterialTheme.colorScheme.surfaceVariant)
+            ) { page ->
+                val isSawnPage = page == 0
+                val pageTitle = if (isSawnPage) "📐 সাইজ কাঠ" else "🪵 গোল কাঠ"
+                val pageCft = if (isSawnPage) sawnCftVal else roundCftVal
+                val pagePrice = if (isSawnPage) sawnPriceVal else roundPriceVal
+
+                val formattedCftStr = com.example.util.ExpressionEvaluator.formatTimberValue(pageCft)
+                val formattedPriceStr = com.example.util.ExpressionEvaluator.formatTimberValue(pagePrice)
+
+                val bgImageRes = if (isSawnPage) {
+                    R.drawable.img_sawn_wood_bg_1785327184380
+                } else {
+                    R.drawable.img_round_wood_bg_1785327205076
+                }
+
+                Box(
+                    modifier = Modifier.fillMaxWidth(),
+                    contentAlignment = Alignment.Center
                 ) {
-                    Text(
-                        text = "CFT: ${String.format("%.2f", calculatedCft)}",
-                        fontSize = 17.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurface
+                    Image(
+                        painter = painterResource(id = bgImageRes),
+                        contentDescription = null,
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier
+                            .matchParentSize()
+                            .alpha(0.20f)
                     )
-                    val unitP = unitPrice.toDoubleOrNull() ?: 0.0
-                    Text(
-                        text = "দাম: ৳${String.format("%.2f", calculatedCft * unitP)}",
-                        fontSize = 15.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 12.dp, vertical = 8.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(
+                                text = pageTitle,
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = "CFT: $formattedCftStr",
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onSurface,
+                                maxLines = 1
+                            )
+                        }
+
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(
+                                text = "দাম: ৳$formattedPriceStr",
+                                fontSize = 15.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                maxLines = 1
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text(
+                                text = if (isSawnPage) "➔" else "⬅",
+                                fontSize = 12.sp,
+                                color = MaterialTheme.colorScheme.outline
+                            )
+                        }
+                    }
+                }
+            }
+
+            // Indicator dots
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 2.dp),
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                repeat(2) { index ->
+                    val isSelected = pagerState.currentPage == index
+                    Box(
+                        modifier = Modifier
+                            .padding(2.dp)
+                            .size(if (isSelected) 8.dp else 6.dp)
+                            .clip(RoundedCornerShape(4.dp))
+                            .background(if (isSelected) Color.Black else Color.LightGray)
                     )
                 }
             }
@@ -289,16 +406,18 @@ fun TimberCftCalculatorContent(
 
         Spacer(modifier = Modifier.height(4.dp))
 
-        // Memory Key Bar (MC, MR, M+, M-, MS)
+        // Memory Key Bar (MC, MR, M+, M-, MS) on a NEW line
         MemoryBar(
             hasMemory = hasMemory,
             onMemoryOp = onMemoryOp,
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 6.dp)
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 6.dp)
         )
 
         Spacer(modifier = Modifier.height(4.dp))
 
-        // Single Non-Duplicated Keypad for Timber CFT
+        // Keypad anchored at the very bottom
         CustomizedTimberKeypad(
             onKeyInput = onKeyInput,
             modifier = Modifier

@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.windowInsetsPadding
@@ -19,12 +20,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.ui.components.BottomModeOption
-import com.example.ui.components.BottomPillSelector
 import com.example.ui.components.DisplayPanel
 import com.example.ui.components.HistoryBottomSheet
 import com.example.ui.components.KeypadGrid
 import com.example.ui.components.MemoryBar
 import com.example.ui.components.TimberCftCalculatorContent
+import com.example.ui.components.TopPillHeaderBar
 
 @Composable
 fun CalculatorScreen(
@@ -56,10 +57,10 @@ fun CalculatorScreen(
 
     val buttonShapeRadius = if (isRoundButtons) 30.dp else 14.dp
 
-    val selectedBottomOption = when {
-        currentScreen == CalculatorAppMode.STANDARD -> BottomModeOption.NORMAL
-        timberType == TimberType.SAWN_TIMBER -> BottomModeOption.SIZE
-        else -> BottomModeOption.ROUND
+    val selectedBottomOption = if (currentScreen == CalculatorAppMode.STANDARD) {
+        BottomModeOption.CALCULATOR
+    } else {
+        BottomModeOption.WOODEN
     }
 
     Scaffold(
@@ -73,7 +74,24 @@ fun CalculatorScreen(
                 .padding(innerPadding)
                 .background(MaterialTheme.colorScheme.background)
                 .windowInsetsPadding(WindowInsets.safeDrawing)
+                .navigationBarsPadding()
         ) {
+            // Top Pill Header Bar (Mode selector 85% width + History button 15% width at VERY top)
+            TopPillHeaderBar(
+                selectedOption = selectedBottomOption,
+                onOptionSelected = { option ->
+                    when (option) {
+                        BottomModeOption.CALCULATOR -> {
+                            viewModel.selectAppMode(CalculatorAppMode.STANDARD)
+                        }
+                        BottomModeOption.WOODEN -> {
+                            viewModel.selectAppMode(CalculatorAppMode.TIMBER_CFT)
+                        }
+                    }
+                },
+                onOpenHistory = { viewModel.toggleHistorySheet(true) }
+            )
+
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -81,9 +99,7 @@ fun CalculatorScreen(
             ) {
                 if (currentScreen == CalculatorAppMode.STANDARD) {
                     Column(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(bottom = 2.dp)
+                        modifier = Modifier.fillMaxSize()
                     ) {
                         // Display Panel
                         DisplayPanel(
@@ -92,9 +108,6 @@ fun CalculatorScreen(
                             liveResult = liveResult,
                             hasMemory = hasMemory,
                             memoryValue = memoryValue,
-                            isSoundEnabled = isSoundEnabled,
-                            onToggleSound = viewModel::toggleSoundEnabled,
-                            onOpenHistory = { viewModel.toggleHistorySheet(true) },
                             modifier = Modifier.weight(1f)
                         )
 
@@ -146,7 +159,7 @@ fun CalculatorScreen(
                         onAddBatchItem = viewModel::addCurrentToTimberBatch,
                         onRemoveBatchItem = viewModel::removeTimberBatchItem,
                         onClearBatch = viewModel::clearTimberBatch,
-                        onOpenHistory = { viewModel.toggleHistorySheet(true) }
+                        onOpenHistory = { viewModel.toggleHistorySheet(false) }
                     )
                 }
 
@@ -161,26 +174,6 @@ fun CalculatorScreen(
                     )
                 }
             }
-
-            // Bottom Mode Switch (Normal, Size, Round)
-            BottomPillSelector(
-                selectedOption = selectedBottomOption,
-                onOptionSelected = { option ->
-                    when (option) {
-                        BottomModeOption.NORMAL -> {
-                            viewModel.selectAppMode(CalculatorAppMode.STANDARD)
-                        }
-                        BottomModeOption.SIZE -> {
-                            viewModel.selectAppMode(CalculatorAppMode.TIMBER_CFT)
-                            viewModel.setTimberType(TimberType.SAWN_TIMBER)
-                        }
-                        BottomModeOption.ROUND -> {
-                            viewModel.selectAppMode(CalculatorAppMode.TIMBER_CFT)
-                            viewModel.setTimberType(TimberType.ROUND_LOG)
-                        }
-                    }
-                }
-            )
         }
     }
 }

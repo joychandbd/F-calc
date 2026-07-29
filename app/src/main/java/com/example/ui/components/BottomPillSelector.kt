@@ -8,11 +8,18 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.History
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -27,38 +34,38 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 enum class BottomModeOption {
-    NORMAL,
-    SIZE,
-    ROUND
+    CALCULATOR,
+    WOODEN
 }
 
 @Composable
-fun BottomPillSelector(
+fun TopPillHeaderBar(
     selectedOption: BottomModeOption,
     onOptionSelected: (BottomModeOption) -> Unit,
+    onOpenHistory: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Box(
+    Row(
         modifier = modifier
             .fillMaxWidth()
-            .navigationBarsPadding()
-            .padding(horizontal = 24.dp, vertical = 8.dp),
-        contentAlignment = Alignment.Center
+            .padding(start = 12.dp, top = 8.dp, end = 12.dp, bottom = 4.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
     ) {
+        // Mode Switcher Pill (85% Width)
         Row(
             modifier = Modifier
-                .fillMaxWidth()
-                .height(48.dp)
-                .clip(RoundedCornerShape(30.dp))
+                .weight(0.85f)
+                .height(44.dp)
+                .clip(RoundedCornerShape(26.dp))
                 .background(Color(0xFFE8E8ED))
-                .padding(4.dp),
-            horizontalArrangement = Arrangement.spacedBy(4.dp),
+                .padding(horizontal = 3.dp, vertical = 3.dp),
+            horizontalArrangement = Arrangement.spacedBy(3.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             val options = listOf(
-                BottomModeOption.NORMAL to "Normal",
-                BottomModeOption.SIZE to "Size",
-                BottomModeOption.ROUND to "Round"
+                BottomModeOption.CALCULATOR to "🗓️ Calculator",
+                BottomModeOption.WOODEN to "🪵 Wooden"
             )
 
             options.forEach { (option, label) ->
@@ -79,24 +86,57 @@ fun BottomPillSelector(
                 Box(
                     modifier = Modifier
                         .weight(1f)
-                        .height(40.dp)
-                        .clip(RoundedCornerShape(24.dp))
+                        .height(38.dp)
+                        .clip(RoundedCornerShape(22.dp))
                         .then(
-                            if (isSelected) Modifier.shadow(2.dp, RoundedCornerShape(24.dp)) else Modifier
+                            if (isSelected) Modifier.shadow(2.dp, RoundedCornerShape(22.dp)) else Modifier
                         )
                         .background(pillBg)
                         .clickable { onOptionSelected(option) }
-                        .testTag("bottom_pill_${option.name.lowercase()}"),
+                        .testTag("top_pill_${option.name.lowercase()}"),
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
                         text = label,
                         color = textColor,
-                        fontSize = 15.sp,
+                        fontSize = 14.sp,
                         fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium
                     )
                 }
             }
         }
+
+        Spacer(modifier = Modifier.width(8.dp))
+
+        // History Icon Button (10-15% Width)
+        IconButton(
+            onClick = onOpenHistory,
+            modifier = Modifier
+                .size(44.dp)
+                .clip(RoundedCornerShape(22.dp))
+                .background(Color(0xFFE8E8ED))
+                .testTag("top_history_button")
+        ) {
+            Icon(
+                imageVector = Icons.Default.History,
+                contentDescription = "History",
+                tint = Color.Black
+            )
+        }
     }
+}
+
+// Backward compatibility alias if needed
+@Composable
+fun BottomPillSelector(
+    selectedOption: BottomModeOption,
+    onOptionSelected: (BottomModeOption) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    TopPillHeaderBar(
+        selectedOption = selectedOption,
+        onOptionSelected = onOptionSelected,
+        onOpenHistory = {},
+        modifier = modifier
+    )
 }

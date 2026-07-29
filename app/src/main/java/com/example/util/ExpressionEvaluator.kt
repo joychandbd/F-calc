@@ -178,15 +178,27 @@ object ExpressionEvaluator {
     }
 
     /**
-     * Formats a raw double value into a clean decimal string without integer overflow.
+     * Formats a raw double value into a clean decimal string.
+     * Results with more than 20 digits or large magnitude are formatted in exponential notation (E^n).
      */
     fun formatDecimal(value: Double): String {
         if (value.isNaN()) return "Error"
         if (value.isInfinite()) return if (value > 0) "Infinity" else "-Infinity"
 
+        val absVal = abs(value)
+        if (absVal >= 1e20 || (absVal > 0 && absVal < 1e-10)) {
+            val expDf = java.text.DecimalFormat("0.######E0", java.text.DecimalFormatSymbols(java.util.Locale.US))
+            return expDf.format(value)
+        }
+
         // Handle exact integer values
         if (value == value.toLong().toDouble() && abs(value) <= Long.MAX_VALUE.toDouble()) {
-            return value.toLong().toString()
+            val intStr = value.toLong().toString()
+            if (intStr.replace("-", "").length > 20) {
+                val expDf = java.text.DecimalFormat("0.######E0", java.text.DecimalFormatSymbols(java.util.Locale.US))
+                return expDf.format(value)
+            }
+            return intStr
         }
 
         // Format decimal up to 3 decimal places
@@ -195,7 +207,26 @@ object ExpressionEvaluator {
         })
         df.maximumFractionDigits = 3
         val formatted = df.format(value)
+
+        if (formatted.replace(".", "").replace("-", "").length > 20) {
+            val expDf = java.text.DecimalFormat("0.######E0", java.text.DecimalFormatSymbols(java.util.Locale.US))
+            return expDf.format(value)
+        }
+
         return if (formatted == "-0") "0" else formatted
+    }
+
+    /**
+     * Formats CFT and Timber price values to at most 3 decimal places cleanly.
+     */
+    fun formatTimberValue(value: Double): String {
+        if (value.isNaN() || value.isInfinite()) return "0"
+        val df = java.text.DecimalFormat("#.###", java.text.DecimalFormatSymbols(java.util.Locale.US).apply {
+            decimalSeparator = '.'
+        })
+        df.maximumFractionDigits = 3
+        val res = df.format(value)
+        return if (res == "-0" || res.isEmpty()) "0" else res
     }
 
     /**

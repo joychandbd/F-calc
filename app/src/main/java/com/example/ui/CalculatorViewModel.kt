@@ -310,7 +310,7 @@ class CalculatorViewModel(application: Application) : AndroidViewModel(applicati
             val formattedResult = ExpressionEvaluator.formatDecimal(resultValue)
             val feetInchesStr = ExpressionEvaluator.formatFeetInches(resultValue)
 
-            _liveResult.value = formattedResult
+            _liveResult.value = ""
             _liveFeetInches.value = feetInchesStr
             _expressionValue.value = TextFieldValue(formattedResult, selection = TextRange(formattedResult.length))
             _expression.value = formattedResult
@@ -361,15 +361,49 @@ class CalculatorViewModel(application: Application) : AndroidViewModel(applicati
             MemoryOp.ADD -> {
                 _memoryValue.value += currentVal
                 _hasMemory.value = _memoryValue.value != 0.0
+                if (_currentScreen.value == CalculatorAppMode.TIMBER_CFT) {
+                    addTimberToHistoryOnMemory(currentVal, isAdd = true)
+                }
             }
             MemoryOp.SUBTRACT -> {
                 _memoryValue.value -= currentVal
                 _hasMemory.value = _memoryValue.value != 0.0
+                if (_currentScreen.value == CalculatorAppMode.TIMBER_CFT) {
+                    addTimberToHistoryOnMemory(currentVal, isAdd = false)
+                }
             }
             MemoryOp.STORE -> {
                 _memoryValue.value = currentVal
                 _hasMemory.value = _memoryValue.value != 0.0
+                if (_currentScreen.value == CalculatorAppMode.TIMBER_CFT) {
+                    addTimberToHistoryOnMemory(currentVal, isAdd = true)
+                }
             }
+        }
+    }
+
+    private fun addTimberToHistoryOnMemory(cftValue: Double, isAdd: Boolean) {
+        val isSawn = _timberType.value == TimberType.SAWN_TIMBER
+        val qty = _timberQuantity.value.toIntOrNull() ?: 1
+        val pricePerCft = _timberUnitPrice.value.toDoubleOrNull() ?: 0.0
+        val totalPrice = cftValue * pricePerCft
+
+        val title = if (isSawn) {
+            "সাইজ কাঠ (${_timberLength.value}' × ${_timberWidth.value}\" × ${_timberThickness.value}\")"
+        } else {
+            "গোল কাঠ (${_timberLength.value}', বেড়: ${_timberGirth.value}\")"
+        }
+
+        val opTag = if (isAdd) "M+" else "M-"
+        val formattedCft = ExpressionEvaluator.formatTimberValue(cftValue)
+        val formattedPrice = if (totalPrice > 0) " | ৳${ExpressionEvaluator.formatTimberValue(totalPrice)}" else ""
+
+        viewModelScope.launch {
+            repository.insert(
+                expression = "[$opTag] $title [$qty টি]",
+                result = "$formattedCft CFT",
+                feetInchesResult = formattedPrice
+            )
         }
     }
 

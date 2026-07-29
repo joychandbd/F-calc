@@ -33,11 +33,10 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.text.InlineTextContent
 import androidx.compose.foundation.text.appendInlineContent
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Menu
-import androidx.compose.material.icons.filled.VolumeOff
-import androidx.compose.material.icons.filled.VolumeUp
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -79,10 +78,6 @@ fun DisplayPanel(
     liveResult: String,
     hasMemory: Boolean,
     memoryValue: Double,
-    isSoundEnabled: Boolean = true,
-    onToggleSound: () -> Unit = {},
-    onOpenDrawer: () -> Unit = {},
-    onOpenHistory: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val exprScrollState = rememberScrollState()
@@ -107,240 +102,206 @@ fun DisplayPanel(
     Card(
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 12.dp, vertical = 6.dp),
+            .padding(horizontal = 12.dp, vertical = 4.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         shape = RoundedCornerShape(20.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp)
-        ) {
-            // Header Bar (Clean - No headline, no hamburger menu, only Memory badge and History icon)
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                // Memory Badge
-                AnimatedVisibility(
-                    visible = hasMemory,
-                    enter = fadeIn(),
-                    exit = fadeOut()
-                ) {
-                    Surface(
-                        color = MaterialTheme.colorScheme.surfaceVariant,
-                        shape = CircleShape,
-                    ) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
-                        ) {
-                            Box(
-                                modifier = Modifier
-                                    .size(6.dp)
-                                    .clip(CircleShape)
-                                    .background(MaterialTheme.colorScheme.onSurface)
-                            )
-                            Spacer(modifier = Modifier.width(6.dp))
-                            Text(
-                                text = "M = ${if (memoryValue % 1.0 == 0.0) memoryValue.toLong() else memoryValue}",
-                                color = MaterialTheme.colorScheme.onSurface,
-                                fontSize = 12.sp,
-                                fontWeight = FontWeight.Bold
-                            )
-                        }
-                    }
-                }
-
-                if (!hasMemory) {
-                    Spacer(modifier = Modifier.width(1.dp))
-                }
-
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    IconButton(
-                        onClick = onToggleSound,
-                        modifier = Modifier
-                            .size(38.dp)
-                            .testTag("sound_toggle_button")
-                    ) {
-                        Icon(
-                            imageVector = if (isSoundEnabled) Icons.Default.VolumeUp else Icons.Default.VolumeOff,
-                            contentDescription = if (isSoundEnabled) "Mute Sound" else "Enable Sound",
-                            tint = MaterialTheme.colorScheme.onSurface
-                        )
-                    }
-
-                    // History Button
-                    IconButton(
-                        onClick = onOpenHistory,
-                        modifier = Modifier
-                            .size(38.dp)
-                            .testTag("history_button")
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.History,
-                            contentDescription = "History",
-                            tint = MaterialTheme.colorScheme.onSurface
-                        )
-                    }
-                }
-            }
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            // Expression Input Display with Blinking Overlay Cursor and Touch/Drag Water Drop Handle
-            val exprFontSize = when {
-                expressionValue.text.length > 30 -> 24.sp
-                expressionValue.text.length > 18 -> 28.sp
-                else -> 36.sp
-            }
-            val exprLineHeight = when {
-                expressionValue.text.length > 30 -> 30.sp
-                expressionValue.text.length > 18 -> 34.sp
-                else -> 44.sp
-            }
-
-            Box(
+        SelectionContainer {
+            Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .heightIn(min = 60.dp, max = 110.dp)
-                    .verticalScroll(exprScrollState),
-                contentAlignment = Alignment.BottomEnd
+                    .padding(16.dp)
             ) {
-                var textLayoutResult by remember { mutableStateOf<TextLayoutResult?>(null) }
-                var isTouching by remember { mutableStateOf(false) }
-                val text = expressionValue.text
-                val displayText = if (text.isEmpty()) "0" else text
-                val cursorPos = expressionValue.selection.start.coerceIn(0, text.length)
-
-                Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.BottomEnd) {
-                    Text(
-                        text = displayText,
-                        color = if (text.isEmpty()) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface,
-                        fontSize = exprFontSize,
-                        lineHeight = exprLineHeight,
-                        fontWeight = FontWeight.Normal,
-                        textAlign = TextAlign.End,
-                        onTextLayout = { layout ->
-                            textLayoutResult = layout
-                        },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .pointerInput(text) {
-                                awaitEachGesture {
-                                    val down = awaitFirstDown(requireUnconsumed = false)
-                                    isTouching = true
-                                    textLayoutResult?.let { layout ->
-                                        try {
-                                            val newOffset = layout.getOffsetForPosition(down.position).coerceIn(0, text.length)
-                                            onExpressionValueChange(expressionValue.copy(selection = TextRange(newOffset)))
-                                        } catch (_: Exception) {}
-                                    }
-
-                                    while (true) {
-                                        val event = awaitPointerEvent()
-                                        val change = event.changes.firstOrNull() ?: break
-                                        if (change.pressed) {
-                                            textLayoutResult?.let { layout ->
-                                                try {
-                                                    val newOffset = layout.getOffsetForPosition(change.position).coerceIn(0, text.length)
-                                                    onExpressionValueChange(expressionValue.copy(selection = TextRange(newOffset)))
-                                                } catch (_: Exception) {}
-                                            }
-                                        } else {
-                                            break
-                                        }
-                                    }
-                                    isTouching = false
-                                }
-                            }
-                            .testTag("expression_text")
-                    )
-
-                    // Overlay Blinking Cursor Line + Water Drop 💧 Handle
-                    textLayoutResult?.let { layout ->
-                        val cursorRect = try {
-                            layout.getCursorRect(cursorPos)
-                        } catch (_: Exception) { null }
-
-                        if (cursorRect != null) {
-                            val density = LocalDensity.current
-                            val cursorLeftDp = with(density) { cursorRect.left.toDp() }
-                            val cursorTopDp = with(density) { cursorRect.top.toDp() }
-                            val cursorHeightDp = with(density) { cursorRect.height.toDp().coerceIn(22.dp, 44.dp) }
-
-                            // Vertical Cursor Line (Overlay - does NOT shift characters)
-                            Box(
-                                modifier = Modifier
-                                    .offset(x = cursorLeftDp, y = cursorTopDp)
-                                    .width(2.5.dp)
-                                    .height(cursorHeightDp)
-                                    .alpha(if (isTouching) 1f else cursorAlpha)
-                                    .background(Color.Black, RoundedCornerShape(1.dp))
-                            )
-
-                            // Water drop 💧 handle (shown only when user is touching/holding text)
-                            if (isTouching) {
-                                Canvas(
+                // Memory Badge Row
+                if (hasMemory) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.Start,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Surface(
+                            color = MaterialTheme.colorScheme.surfaceVariant,
+                            shape = CircleShape,
+                        ) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
+                            ) {
+                                Box(
                                     modifier = Modifier
-                                        .offset(
-                                            x = cursorLeftDp - 7.dp,
-                                            y = cursorTopDp + cursorHeightDp - 2.dp
-                                        )
-                                        .size(16.dp, 20.dp)
-                                ) {
-                                    val dropPath = Path().apply {
-                                        moveTo(size.width / 2f, 0f)
-                                        cubicTo(
-                                            size.width * 0.95f, size.height * 0.45f,
-                                            size.width, size.height,
-                                            size.width / 2f, size.height
-                                        )
-                                        cubicTo(
-                                            0f, size.height,
-                                            0f, size.height * 0.45f,
-                                            size.width / 2f, 0f
-                                        )
-                                        close()
+                                        .size(6.dp)
+                                        .clip(CircleShape)
+                                        .background(MaterialTheme.colorScheme.onSurface)
+                                )
+                                Spacer(modifier = Modifier.width(6.dp))
+                                Text(
+                                    text = "M = ${if (memoryValue % 1.0 == 0.0) memoryValue.toLong() else memoryValue}",
+                                    color = MaterialTheme.colorScheme.onSurface,
+                                    fontSize = 12.sp,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(8.dp))
+                }
+
+                // Expression Input Display with Blinking Overlay Cursor and Touch/Drag Water Drop Handle
+                val rawText = expressionValue.text
+                val formattedDisplayText = if (rawText.isEmpty()) "0" else {
+                    rawText.replace(" × ", "\n× ")
+                        .replace(" ÷ ", "\n÷ ")
+                        .replace(" + ", "\n+ ")
+                        .replace(" − ", "\n− ")
+                }
+
+                val exprFontSize = when {
+                    rawText.length > 30 -> 22.sp
+                    rawText.length > 18 -> 26.sp
+                    else -> 34.sp
+                }
+                val exprLineHeight = when {
+                    rawText.length > 30 -> 28.sp
+                    rawText.length > 18 -> 32.sp
+                    else -> 42.sp
+                }
+
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .heightIn(min = 60.dp, max = 130.dp)
+                        .verticalScroll(exprScrollState),
+                    contentAlignment = Alignment.BottomEnd
+                ) {
+                    var textLayoutResult by remember { mutableStateOf<TextLayoutResult?>(null) }
+                    var isTouching by remember { mutableStateOf(false) }
+                    val cursorPos = expressionValue.selection.start.coerceIn(0, rawText.length)
+
+                    Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.BottomEnd) {
+                        Text(
+                            text = formattedDisplayText,
+                            color = if (rawText.isEmpty()) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface,
+                            fontSize = exprFontSize,
+                            lineHeight = exprLineHeight,
+                            fontWeight = FontWeight.Normal,
+                            textAlign = TextAlign.End,
+                            onTextLayout = { layout ->
+                                textLayoutResult = layout
+                            },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .pointerInput(rawText) {
+                                    awaitEachGesture {
+                                        val down = awaitFirstDown(requireUnconsumed = false)
+                                        isTouching = true
+                                        textLayoutResult?.let { layout ->
+                                            try {
+                                                val newOffset = layout.getOffsetForPosition(down.position).coerceIn(0, rawText.length)
+                                                onExpressionValueChange(expressionValue.copy(selection = TextRange(newOffset)))
+                                            } catch (_: Exception) {}
+                                        }
+
+                                        while (true) {
+                                            val event = awaitPointerEvent()
+                                            val change = event.changes.firstOrNull() ?: break
+                                            if (change.pressed) {
+                                                textLayoutResult?.let { layout ->
+                                                    try {
+                                                        val newOffset = layout.getOffsetForPosition(change.position).coerceIn(0, rawText.length)
+                                                        onExpressionValueChange(expressionValue.copy(selection = TextRange(newOffset)))
+                                                    } catch (_: Exception) {}
+                                                }
+                                            } else {
+                                                break
+                                            }
+                                        }
+                                        isTouching = false
                                     }
-                                    drawPath(dropPath, color = Color.Black)
+                                }
+                                .testTag("expression_text")
+                        )
+
+                        // Overlay Blinking Cursor Line + Water Drop 💧 Handle
+                        textLayoutResult?.let { layout ->
+                            val cursorRect = try {
+                                layout.getCursorRect(cursorPos)
+                            } catch (_: Exception) { null }
+
+                            if (cursorRect != null) {
+                                val density = LocalDensity.current
+                                val cursorLeftDp = with(density) { cursorRect.left.toDp() }
+                                val cursorTopDp = with(density) { cursorRect.top.toDp() }
+                                val cursorHeightDp = with(density) { cursorRect.height.toDp().coerceIn(20.dp, 40.dp) }
+
+                                // Vertical Cursor Line
+                                Box(
+                                    modifier = Modifier
+                                        .offset(x = cursorLeftDp, y = cursorTopDp)
+                                        .width(2.5.dp)
+                                        .height(cursorHeightDp)
+                                        .alpha(if (isTouching) 1f else cursorAlpha)
+                                        .background(Color.Black, RoundedCornerShape(1.dp))
+                                )
+
+                                // Water drop 💧 handle
+                                if (isTouching) {
+                                    Canvas(
+                                        modifier = Modifier
+                                            .offset(
+                                                x = cursorLeftDp - 7.dp,
+                                                y = cursorTopDp + cursorHeightDp - 2.dp
+                                            )
+                                            .size(16.dp, 20.dp)
+                                    ) {
+                                        val dropPath = Path().apply {
+                                            moveTo(size.width / 2f, 0f)
+                                            cubicTo(
+                                                size.width * 0.95f, size.height * 0.45f,
+                                                size.width, size.height,
+                                                size.width / 2f, size.height
+                                            )
+                                            cubicTo(
+                                                0f, size.height,
+                                                0f, size.height * 0.45f,
+                                                size.width / 2f, 0f
+                                            )
+                                            close()
+                                        }
+                                        drawPath(dropPath, color = Color.Black)
+                                    }
                                 }
                             }
                         }
                     }
                 }
-            }
 
-            Spacer(modifier = Modifier.height(10.dp))
-
-            // Result Display (Monochrome bold black result text)
-            val resultFontSize = when {
-                liveResult.length > 25 -> 22.sp
-                liveResult.length > 15 -> 28.sp
-                else -> 34.sp
-            }
-            val resultLineHeight = when {
-                liveResult.length > 25 -> 28.sp
-                liveResult.length > 15 -> 34.sp
-                else -> 40.sp
-            }
-
-            Box(
-                modifier = Modifier.fillMaxWidth(),
-                contentAlignment = Alignment.CenterEnd
-            ) {
                 if (liveResult.isNotEmpty()) {
-                    Text(
-                        text = "= $liveResult",
-                        color = Color.Black,
-                        fontSize = resultFontSize,
-                        lineHeight = resultLineHeight,
-                        fontWeight = FontWeight.Bold,
-                        textAlign = TextAlign.End,
-                        modifier = Modifier.testTag("primary_result_text")
-                    )
+                    Spacer(modifier = Modifier.height(10.dp))
+
+                    // Result Display (Adaptive font size, STRICT single line, NO '=' sign)
+                    val resultFontSize = when {
+                        liveResult.length > 20 -> 18.sp
+                        liveResult.length > 15 -> 22.sp
+                        liveResult.length > 10 -> 26.sp
+                        else -> 32.sp
+                    }
+
+                    Box(
+                        modifier = Modifier.fillMaxWidth(),
+                        contentAlignment = Alignment.CenterEnd
+                    ) {
+                        Text(
+                            text = liveResult,
+                            color = Color.Black,
+                            fontSize = resultFontSize,
+                            fontWeight = FontWeight.Bold,
+                            textAlign = TextAlign.End,
+                            maxLines = 1,
+                            softWrap = false,
+                            modifier = Modifier.testTag("primary_result_text")
+                        )
+                    }
                 }
             }
         }
