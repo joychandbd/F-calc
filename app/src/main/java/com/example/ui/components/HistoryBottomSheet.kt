@@ -74,7 +74,7 @@ fun HistoryBottomSheet(
                     Icon(
                         imageVector = Icons.Default.History,
                         contentDescription = null,
-                        tint = AccentOrange,
+                        tint = MaterialTheme.colorScheme.onSurface,
                         modifier = Modifier.size(24.dp)
                     )
                     Spacer(modifier = Modifier.width(8.dp))
@@ -177,7 +177,7 @@ fun HistoryCardItem(
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
                     fontFamily = FontFamily.Monospace,
-                    color = AccentOrange
+                    color = MaterialTheme.colorScheme.onSurface
                 )
             }
 

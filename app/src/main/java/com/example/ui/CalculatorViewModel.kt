@@ -70,6 +70,9 @@ class CalculatorViewModel(application: Application) : AndroidViewModel(applicati
     private val _isRoundButtons = MutableStateFlow(false)
     val isRoundButtons: StateFlow<Boolean> = _isRoundButtons.asStateFlow()
 
+    private val _isSoundEnabled = MutableStateFlow(true)
+    val isSoundEnabled: StateFlow<Boolean> = _isSoundEnabled.asStateFlow()
+
     private val _showFeetInchesInDisplay = MutableStateFlow(true)
     val showFeetInchesInDisplay: StateFlow<Boolean> = _showFeetInchesInDisplay.asStateFlow()
 
@@ -139,6 +142,10 @@ class CalculatorViewModel(application: Application) : AndroidViewModel(applicati
 
     fun toggleButtonShape() {
         _isRoundButtons.value = !_isRoundButtons.value
+    }
+
+    fun toggleSoundEnabled() {
+        _isSoundEnabled.value = !_isSoundEnabled.value
     }
 
     fun toggleFeetInchesInDisplay() {
@@ -332,20 +339,24 @@ class CalculatorViewModel(application: Application) : AndroidViewModel(applicati
             }
             MemoryOp.RECALL -> {
                 val memStr = ExpressionEvaluator.formatDecimal(_memoryValue.value)
-                if (isEvaluated) {
-                    _expression.value = memStr
-                    isEvaluated = false
+                if (_currentScreen.value == CalculatorAppMode.TIMBER_CFT) {
+                    getActiveFieldFlow().value = memStr
                 } else {
-                    val current = _expression.value
-                    if (current.isEmpty()) {
+                    if (isEvaluated) {
                         _expression.value = memStr
-                    } else if (current.trim().last().let { it == '+' || it == '-' || it == '×' || it == '÷' || it == '(' }) {
-                        _expression.value = "$current $memStr"
+                        isEvaluated = false
                     } else {
-                        _expression.value = "$current × $memStr"
+                        val current = _expression.value
+                        if (current.isEmpty()) {
+                            _expression.value = memStr
+                        } else if (current.trim().last().let { it == '+' || it == '-' || it == '×' || it == '÷' || it == '(' }) {
+                            _expression.value = "$current $memStr"
+                        } else {
+                            _expression.value = "$current × $memStr"
+                        }
                     }
+                    updateLiveResult()
                 }
-                updateLiveResult()
             }
             MemoryOp.ADD -> {
                 _memoryValue.value += currentVal
@@ -363,6 +374,16 @@ class CalculatorViewModel(application: Application) : AndroidViewModel(applicati
     }
 
     private fun parseCurrentOrLiveValue(): Double {
+        if (_currentScreen.value == CalculatorAppMode.TIMBER_CFT) {
+            val timberCft = calculateSingleTimberCft()
+            if (timberCft > 0.0) {
+                return timberCft
+            }
+            val activeVal = getActiveFieldFlow().value.toDoubleOrNull() ?: 0.0
+            if (activeVal > 0.0) {
+                return activeVal
+            }
+        }
         val expr = _expression.value.trim()
         if (expr.isNotEmpty()) {
             try {
@@ -423,13 +444,15 @@ class CalculatorViewModel(application: Application) : AndroidViewModel(applicati
         val currentVal = currentFlow.value
 
         when (key) {
-            "C" -> currentFlow.value = ""
-            "⌫" -> if (currentVal.isNotEmpty()) currentFlow.value = currentVal.dropLast(1)
+            "C", "CLEAR" -> currentFlow.value = ""
+            "⌫", "X", "x", "DEL" -> if (currentVal.isNotEmpty()) currentFlow.value = currentVal.dropLast(1)
             "." -> if (!currentVal.contains(".")) currentFlow.value = if (currentVal.isEmpty()) "0." else "$currentVal."
             "NEXT" -> advanceToNextField()
             else -> {
                 // Digit 0-9
                 if (currentVal == "0" && key != "0") {
+                    currentFlow.value = key
+                } else if (_activeTimberField.value == ActiveTimberField.QUANTITY && currentVal == "1" && key != "0") {
                     currentFlow.value = key
                 } else {
                     currentFlow.value = currentVal + key

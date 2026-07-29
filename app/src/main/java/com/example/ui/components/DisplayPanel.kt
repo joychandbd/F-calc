@@ -36,6 +36,8 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.VolumeOff
+import androidx.compose.material.icons.filled.VolumeUp
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -53,6 +55,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.foundation.Canvas
 import androidx.compose.ui.input.pointer.pointerInput
@@ -76,7 +79,9 @@ fun DisplayPanel(
     liveResult: String,
     hasMemory: Boolean,
     memoryValue: Double,
-    onOpenDrawer: () -> Unit,
+    isSoundEnabled: Boolean = true,
+    onToggleSound: () -> Unit = {},
+    onOpenDrawer: () -> Unit = {},
     onOpenHistory: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -112,67 +117,59 @@ fun DisplayPanel(
                 .fillMaxWidth()
                 .padding(16.dp)
         ) {
-            // Header Bar
+            // Header Bar (Clean - No headline, no hamburger menu, only Memory badge and History icon)
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    IconButton(
-                        onClick = onOpenDrawer,
-                        modifier = Modifier
-                            .size(40.dp)
-                            .testTag("hamburger_menu_button")
+                // Memory Badge
+                AnimatedVisibility(
+                    visible = hasMemory,
+                    enter = fadeIn(),
+                    exit = fadeOut()
+                ) {
+                    Surface(
+                        color = MaterialTheme.colorScheme.surfaceVariant,
+                        shape = CircleShape,
                     ) {
-                        Icon(
-                            imageVector = Icons.Default.Menu,
-                            contentDescription = "Open Drawer Menu",
-                            tint = MaterialTheme.colorScheme.onSurface
-                        )
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .size(6.dp)
+                                    .clip(CircleShape)
+                                    .background(MaterialTheme.colorScheme.onSurface)
+                            )
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text(
+                                text = "M = ${if (memoryValue % 1.0 == 0.0) memoryValue.toLong() else memoryValue}",
+                                color = MaterialTheme.colorScheme.onSurface,
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
                     }
+                }
 
-                    Spacer(modifier = Modifier.width(4.dp))
-
-                    Text(
-                        text = "প্রদীপ ক্যালকুলেটর",
-                        color = MaterialTheme.colorScheme.onSurface,
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold
-                    )
+                if (!hasMemory) {
+                    Spacer(modifier = Modifier.width(1.dp))
                 }
 
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    // Memory Badge
-                    AnimatedVisibility(
-                        visible = hasMemory,
-                        enter = fadeIn(),
-                        exit = fadeOut()
+                    IconButton(
+                        onClick = onToggleSound,
+                        modifier = Modifier
+                            .size(38.dp)
+                            .testTag("sound_toggle_button")
                     ) {
-                        Surface(
-                            color = AccentOrange.copy(alpha = 0.2f),
-                            shape = CircleShape,
-                            modifier = Modifier.padding(end = 8.dp)
-                        ) {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
-                            ) {
-                                Box(
-                                    modifier = Modifier
-                                        .size(6.dp)
-                                        .clip(CircleShape)
-                                        .background(AccentOrange)
-                                )
-                                Spacer(modifier = Modifier.width(4.dp))
-                                Text(
-                                    text = "M = ${if (memoryValue % 1.0 == 0.0) memoryValue.toLong() else memoryValue}",
-                                    color = AccentOrange,
-                                    fontSize = 12.sp,
-                                    fontWeight = FontWeight.Bold
-                                )
-                            }
-                        }
+                        Icon(
+                            imageVector = if (isSoundEnabled) Icons.Default.VolumeUp else Icons.Default.VolumeOff,
+                            contentDescription = if (isSoundEnabled) "Mute Sound" else "Enable Sound",
+                            tint = MaterialTheme.colorScheme.onSurface
+                        )
                     }
 
                     // History Button
@@ -281,7 +278,7 @@ fun DisplayPanel(
                                     .width(2.5.dp)
                                     .height(cursorHeightDp)
                                     .alpha(if (isTouching) 1f else cursorAlpha)
-                                    .background(AccentOrange, RoundedCornerShape(1.dp))
+                                    .background(Color.Black, RoundedCornerShape(1.dp))
                             )
 
                             // Water drop 💧 handle (shown only when user is touching/holding text)
@@ -308,7 +305,7 @@ fun DisplayPanel(
                                         )
                                         close()
                                     }
-                                    drawPath(dropPath, color = AccentOrange)
+                                    drawPath(dropPath, color = Color.Black)
                                 }
                             }
                         }
@@ -318,7 +315,7 @@ fun DisplayPanel(
 
             Spacer(modifier = Modifier.height(10.dp))
 
-            // Result Display (Google Calc Olive Accent Color with explicit lineHeight and dynamic sizing to prevent overlap)
+            // Result Display (Monochrome bold black result text)
             val resultFontSize = when {
                 liveResult.length > 25 -> 22.sp
                 liveResult.length > 15 -> 28.sp
@@ -337,7 +334,7 @@ fun DisplayPanel(
                 if (liveResult.isNotEmpty()) {
                     Text(
                         text = "= $liveResult",
-                        color = AccentOlive,
+                        color = Color.Black,
                         fontSize = resultFontSize,
                         lineHeight = resultLineHeight,
                         fontWeight = FontWeight.Bold,

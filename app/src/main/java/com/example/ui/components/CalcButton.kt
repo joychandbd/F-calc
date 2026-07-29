@@ -16,12 +16,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.ui.util.SoundManager
 
 @Composable
 fun CalcButton(
@@ -33,8 +35,11 @@ fun CalcButton(
     fontSize: TextUnit = 24.sp,
     fontWeight: FontWeight = FontWeight.Bold,
     shapeRadius: Dp = 50.dp,
+    isSoundEnabled: Boolean = true,
     testTag: String = ""
 ) {
+    val view = LocalView.current
+
     Box(
         modifier = modifier
             .padding(3.dp)
@@ -44,7 +49,10 @@ fun CalcButton(
             .clickable(
                 interactionSource = remember { MutableInteractionSource() },
                 indication = ripple(bounded = true, color = contentColor.copy(alpha = 0.3f)),
-                onClick = onClick
+                onClick = {
+                    SoundManager.playKeyClick(view, isSoundEnabled)
+                    onClick()
+                }
             )
             .then(if (testTag.isNotEmpty()) Modifier.testTag(testTag) else Modifier),
         contentAlignment = Alignment.Center

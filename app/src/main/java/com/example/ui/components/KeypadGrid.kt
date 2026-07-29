@@ -28,6 +28,7 @@ fun KeypadGrid(
     onClearClick: () -> Unit,
     onEqualsClick: () -> Unit,
     shapeRadius: Dp = 50.dp,
+    isSoundEnabled: Boolean = true,
     modifier: Modifier = Modifier
 ) {
     val buttonHeight = 68.dp

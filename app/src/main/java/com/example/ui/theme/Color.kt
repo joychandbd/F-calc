@@ -2,23 +2,24 @@ package com.example.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-// Light Theme: Google Calculator Style
-val LightBg = Color(0xFFFFF8F6)
+// White, Gray, Black Theme Colors
+val LightBg = Color(0xFFF6F6F8)
 val LightSurface = Color(0xFFFFFFFF)
-val LightCard = Color(0xFFF7ECE6)
-val LightTextPrimary = Color(0xFF1F1B16)
-val LightTextSecondary = Color(0xFF52443C)
+val LightCard = Color(0xFFEEEEEE)
+val LightTextPrimary = Color(0xFF000000)
+val LightTextSecondary = Color(0xFF555555)
 
-// Google Calc Button Colors
-val GoogleActionBg = Color(0xFFFFDCC9)
-val GoogleActionText = Color(0xFF2E1500)
-val GoogleNumBg = Color(0xFFF4EFEA)
-val GoogleNumText = Color(0xFF1F1B16)
-val GoogleEqualsBg = Color(0xFF485420)
+// Calculator Button Colors (Monochrome White, Gray, Black)
+val GoogleNumBg = Color(0xFFF0F0F3)
+val GoogleNumText = Color(0xFF000000)
+val GoogleActionBg = Color(0xFFE0E0E5)
+val GoogleActionText = Color(0xFF000000)
+val GoogleEqualsBg = Color(0xFF000000)
 val GoogleEqualsText = Color(0xFFFFFFFF)
 
-// Common Accents
-val AccentOrange = Color(0xFFD96B27)
-val AccentOlive = Color(0xFF485420)
-val ErrorRed = Color(0xFFBA1A1A)
+// Accents strictly Black / Dark Gray
+val AccentOrange = Color(0xFF000000)
+val AccentOlive = Color(0xFF111111)
+val ErrorRed = Color(0xFF333333)
+
 
