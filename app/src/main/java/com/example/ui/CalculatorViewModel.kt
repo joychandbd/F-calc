@@ -70,9 +70,6 @@ class CalculatorViewModel(application: Application) : AndroidViewModel(applicati
     private val _isRoundButtons = MutableStateFlow(false)
     val isRoundButtons: StateFlow<Boolean> = _isRoundButtons.asStateFlow()
 
-    private val _isSoundEnabled = MutableStateFlow(true)
-    val isSoundEnabled: StateFlow<Boolean> = _isSoundEnabled.asStateFlow()
-
     private val _showFeetInchesInDisplay = MutableStateFlow(true)
     val showFeetInchesInDisplay: StateFlow<Boolean> = _showFeetInchesInDisplay.asStateFlow()
 
@@ -102,6 +99,8 @@ class CalculatorViewModel(application: Application) : AndroidViewModel(applicati
     val hasMemory: StateFlow<Boolean> = _hasMemory.asStateFlow()
 
     private var isEvaluated = false
+    private var lastSavedExpr: String? = null
+    private var lastSavedRes: String? = null
 
     // --- Timber CFT Calculator State ---
     private val _timberType = MutableStateFlow(TimberType.SAWN_TIMBER)
@@ -144,10 +143,6 @@ class CalculatorViewModel(application: Application) : AndroidViewModel(applicati
         _isRoundButtons.value = !_isRoundButtons.value
     }
 
-    fun toggleSoundEnabled() {
-        _isSoundEnabled.value = !_isSoundEnabled.value
-    }
-
     fun toggleFeetInchesInDisplay() {
         _showFeetInchesInDisplay.value = !_showFeetInchesInDisplay.value
     }
@@ -161,12 +156,16 @@ class CalculatorViewModel(application: Application) : AndroidViewModel(applicati
     }
 
     fun onExpressionValueChange(newValue: TextFieldValue) {
+        lastSavedExpr = null
+        lastSavedRes = null
         _expressionValue.value = newValue
         _expression.value = newValue.text
         updateLiveResult()
     }
 
     private fun setExpressionWithCursor(text: String, cursorIndex: Int) {
+        lastSavedExpr = null
+        lastSavedRes = null
         val clampedCursor = cursorIndex.coerceIn(0, text.length)
         _expressionValue.value = TextFieldValue(text, selection = TextRange(clampedCursor))
         _expression.value = text
@@ -307,6 +306,8 @@ class CalculatorViewModel(application: Application) : AndroidViewModel(applicati
 
     fun onClear() {
         isEvaluated = false
+        lastSavedExpr = null
+        lastSavedRes = null
         _expressionValue.value = TextFieldValue("")
         _expression.value = ""
         _liveResult.value = ""
@@ -328,12 +329,16 @@ class CalculatorViewModel(application: Application) : AndroidViewModel(applicati
             _expression.value = formattedResult
             isEvaluated = true
 
-            viewModelScope.launch {
-                repository.insert(
-                    expression = expr,
-                    result = formattedResult,
-                    feetInchesResult = feetInchesStr
-                )
+            if (expr != lastSavedExpr || formattedResult != lastSavedRes) {
+                lastSavedExpr = expr
+                lastSavedRes = formattedResult
+                viewModelScope.launch {
+                    repository.insert(
+                        expression = expr,
+                        result = formattedResult,
+                        feetInchesResult = feetInchesStr
+                    )
+                }
             }
         } catch (e: Exception) {
             _liveResult.value = "Error"
@@ -459,10 +464,16 @@ class CalculatorViewModel(application: Application) : AndroidViewModel(applicati
     }
 
     fun selectHistoryItem(item: CalculationHistoryEntity, useResultOnly: Boolean) {
-        val targetText = if (useResultOnly) item.result else item.expression
+        val targetText = if (useResultOnly) {
+            item.result
+        } else {
+            if (item.expression.contains("=")) item.expression else "${item.expression}=${item.result}"
+        }
         _expressionValue.value = TextFieldValue(targetText, selection = TextRange(targetText.length))
         _expression.value = targetText
         isEvaluated = false
+        lastSavedExpr = null
+        lastSavedRes = null
         updateLiveResult()
         _showHistorySheet.value = false
     }

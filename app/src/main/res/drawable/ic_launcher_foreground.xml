@@ -1,8 +1,25 @@
-<?xml version="1.0" encoding="utf-8"?>
-<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
-    <item
-        android:width="66dp"
-        android:height="66dp"
-        android:drawable="@drawable/app_icon_light_1785336885689"
-        android:gravity="center" />
-</layer-list>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Calculator Body -->
+    <path
+        android:fillColor="#1F2937"
+        android:pathData="M32,20 C27.58,20 24,23.58 24,28 L24,80 C24,84.42 27.58,88 32,88 L76,88 C80.42,88 84,84.42 84,80 L84,28 C84,23.58 80.42,20 76,20 L32,20 Z M32,24 L76,24 C78.21,24 80,25.79 80,28 L80,80 C80,82.21 78.21,84 76,84 L32,84 C29.79,84 28,82.21 28,80 L28,28 C28,25.79 29.79,24 32,24 Z" />
+    <!-- Display Screen -->
+    <path
+        android:fillColor="#1F2937"
+        android:pathData="M32,28 C30.34,28 29,29.34 29,31 L29,43 C29,44.66 30.34,46 32,46 L76,46 C77.66,46 79,44.66 79,43 L79,31 C79,29.34 77.66,28 76,28 L32,28 Z M33,32 L75,32 L75,42 L33,42 L33,32 Z" />
+    <!-- Keypad Grid (Buttons) -->
+    <path
+        android:fillColor="#1F2937"
+        android:pathData="M32,50 h8 v8 h-8 z M44,50 h8 v8 h-8 z M56,50 h8 v8 h-8 z M68,50 h8 v8 h-8 z" />
+    <path
+        android:fillColor="#1F2937"
+        android:pathData="M32,60 h8 v8 h-8 z M44,60 h8 v8 h-8 z M56,60 h8 v8 h-8 z M68,60 h8 v8 h-8 z" />
+    <path
+        android:fillColor="#1F2937"
+        android:pathData="M32,70 h8 v8 h-8 z M44,70 h8 v8 h-8 z M56,70 h12 v8 h-12 z" />
+</vector>
+

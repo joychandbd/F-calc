@@ -45,6 +45,7 @@ fun TopPillHeaderBar(
     selectedOption: BottomModeOption,
     onOptionSelected: (BottomModeOption) -> Unit,
     onOpenHistory: () -> Unit,
+    isHistoryOpen: Boolean = false,
     modifier: Modifier = Modifier
 ) {
     Row(
@@ -122,19 +123,31 @@ fun TopPillHeaderBar(
 
         Spacer(modifier = Modifier.width(8.dp))
 
+        val historyBg by animateColorAsState(
+            targetValue = if (isHistoryOpen) Color.Black else Color(0xFFE8E8ED),
+            animationSpec = tween(durationMillis = 200, easing = FastOutSlowInEasing),
+            label = "historyBg"
+        )
+
+        val historyIconTint by animateColorAsState(
+            targetValue = if (isHistoryOpen) Color.White else Color.Black,
+            animationSpec = tween(durationMillis = 200, easing = FastOutSlowInEasing),
+            label = "historyIconTint"
+        )
+
         // History Icon Button (10-15% Width)
         IconButton(
             onClick = onOpenHistory,
             modifier = Modifier
                 .size(44.dp)
                 .clip(RoundedCornerShape(22.dp))
-                .background(Color(0xFFE8E8ED))
+                .background(historyBg)
                 .testTag("top_history_button")
         ) {
             Icon(
                 imageVector = Icons.Default.History,
                 contentDescription = "History",
-                tint = Color.Black
+                tint = historyIconTint
             )
         }
     }

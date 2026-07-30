@@ -34,7 +34,6 @@ fun CalculatorScreen(
 ) {
     val currentScreen by viewModel.currentScreen.collectAsStateWithLifecycle()
     val isRoundButtons by viewModel.isRoundButtons.collectAsStateWithLifecycle()
-    val isSoundEnabled by viewModel.isSoundEnabled.collectAsStateWithLifecycle()
 
     // Standard Calculator state
     val expressionValue by viewModel.expressionValue.collectAsStateWithLifecycle()
@@ -79,6 +78,7 @@ fun CalculatorScreen(
             // Top Pill Header Bar (Mode selector 85% width + History button 15% width at VERY top)
             TopPillHeaderBar(
                 selectedOption = selectedBottomOption,
+                isHistoryOpen = showHistorySheet,
                 onOptionSelected = { option ->
                     when (option) {
                         BottomModeOption.CALCULATOR -> {
@@ -89,7 +89,7 @@ fun CalculatorScreen(
                         }
                     }
                 },
-                onOpenHistory = { viewModel.toggleHistorySheet(true) }
+                onOpenHistory = { viewModel.toggleHistorySheet() }
             )
 
             Box(
@@ -117,7 +117,6 @@ fun CalculatorScreen(
                         MemoryBar(
                             hasMemory = hasMemory,
                             onMemoryOp = viewModel::onMemoryOperation,
-                            isSoundEnabled = isSoundEnabled,
                             modifier = Modifier.fillMaxWidth()
                         )
 
@@ -132,7 +131,6 @@ fun CalculatorScreen(
                             onClearClick = viewModel::onClear,
                             onEqualsClick = viewModel::onEquals,
                             shapeRadius = buttonShapeRadius,
-                            isSoundEnabled = isSoundEnabled,
                             modifier = Modifier.fillMaxWidth()
                         )
                     }
@@ -150,8 +148,6 @@ fun CalculatorScreen(
                         batchList = timberBatch,
                         hasMemory = hasMemory,
                         memoryValue = memoryValue,
-                        isSoundEnabled = isSoundEnabled,
-                        onToggleSound = viewModel::toggleSoundEnabled,
                         onMemoryOp = viewModel::onMemoryOperation,
                         onSelectType = viewModel::setTimberType,
                         onSelectField = viewModel::setActiveTimberField,

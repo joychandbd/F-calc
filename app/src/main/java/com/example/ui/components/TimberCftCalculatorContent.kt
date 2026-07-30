@@ -24,8 +24,6 @@ import androidx.compose.material.icons.filled.CropSquare
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Forest
 import androidx.compose.material.icons.filled.History
-import androidx.compose.material.icons.filled.VolumeOff
-import androidx.compose.material.icons.filled.VolumeUp
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -41,18 +39,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.ui.util.SoundManager
 import com.example.ui.ActiveTimberField
 import com.example.ui.MemoryOp
 import com.example.ui.TimberBatchItem
 import com.example.ui.TimberType
-import com.example.ui.components.MemoryBar
 import com.example.ui.theme.GoogleActionBg
 import com.example.ui.theme.GoogleActionText
 import com.example.ui.theme.GoogleEqualsBg
@@ -63,10 +58,6 @@ import com.example.ui.theme.GoogleNumText
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.foundation.Image
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
-import com.example.R
 
 @Composable
 fun TimberCftCalculatorContent(
@@ -82,8 +73,6 @@ fun TimberCftCalculatorContent(
     batchList: List<TimberBatchItem>,
     hasMemory: Boolean = false,
     memoryValue: Double = 0.0,
-    isSoundEnabled: Boolean = true,
-    onToggleSound: () -> Unit = {},
     onMemoryOp: (MemoryOp) -> Unit = {},
     onSelectType: (TimberType) -> Unit,
     onSelectField: (ActiveTimberField) -> Unit,
@@ -467,19 +456,13 @@ fun TimberKeyButton(
     bg: Color = MaterialTheme.colorScheme.surfaceVariant,
     textCol: Color = MaterialTheme.colorScheme.onSurface,
     fontSp: androidx.compose.ui.unit.TextUnit = 22.sp,
-    isSoundEnabled: Boolean = true,
     testTag: String? = null
 ) {
-    val view = LocalView.current
-
     Box(
         modifier = modifier
             .clip(RoundedCornerShape(12.dp))
             .background(bg)
-            .clickable(onClick = {
-                SoundManager.playKeyClick(view, isSoundEnabled)
-                onClick()
-            })
+            .clickable(onClick = onClick)
             .then(if (testTag != null) Modifier.testTag(testTag) else Modifier),
         contentAlignment = Alignment.Center
     ) {

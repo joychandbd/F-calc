@@ -15,23 +15,19 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.ui.MemoryOp
 import com.example.ui.theme.AccentOrange
-import com.example.ui.util.SoundManager
 
 @Composable
 fun MemoryBar(
     hasMemory: Boolean,
     onMemoryOp: (MemoryOp) -> Unit,
-    isSoundEnabled: Boolean = true,
     modifier: Modifier = Modifier
 ) {
-    val view = LocalView.current
     val memKeys = listOf(
         "MC" to MemoryOp.CLEAR,
         "MR" to MemoryOp.RECALL,
@@ -62,7 +58,6 @@ fun MemoryBar(
                     .clip(RoundedCornerShape(10.dp))
                     .background(if (isEnabled) buttonBg else buttonBg.copy(alpha = 0.4f))
                     .clickable(enabled = isEnabled) {
-                        SoundManager.playKeyClick(view, isSoundEnabled)
                         onMemoryOp(op)
                     }
                     .testTag("memory_key_$label"),
